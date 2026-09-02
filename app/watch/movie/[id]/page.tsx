@@ -1,15 +1,15 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft, Clapperboard } from "lucide-react"
-import { getTmdbTitle, tmdbImage, tmdbTitle } from "@/lib/tmdb"
-import { getMovieMapping } from "@/lib/movie-mapping"
-import { Button } from "@/components/ui/button"
 import { MovieWatchPlayer } from "@/components/tmdb-watch-player"
+import { Button } from "@/components/ui/button"
+import { getMovieMapping } from "@/lib/movie-mapping"
+import { getTmdbTitle, tmdbImage, tmdbTitle } from "@/lib/tmdb"
 
 export const dynamic = "force-dynamic"
 
-type WatchPageProps = {
-  params: Promise<{ type: string; id: string }>
+type MovieWatchPageProps = {
+  params: Promise<{ id: string }>
 }
 
 function positiveInteger(value: string) {
@@ -17,18 +17,15 @@ function positiveInteger(value: string) {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined
 }
 
-export default async function TmdbWatchPage({ params }: WatchPageProps) {
-  const { type, id: rawId } = await params
-  if (type !== "movie") notFound()
-
+export default async function MovieWatchPage({ params }: MovieWatchPageProps) {
+  const { id: rawId } = await params
   const id = positiveInteger(rawId)
-  if (!id) notFound()
-
   const mapping = getMovieMapping(rawId)
-  if (!mapping) notFound()
+  if (!id || !mapping) notFound()
 
   const title = await getTmdbTitle(id, "movie")
   const name = tmdbTitle(title)
+  const poster = tmdbImage(title.poster_path, "w342")
   const runtime = title.runtime ?? title.episode_run_time?.[0]
 
   return (
@@ -38,7 +35,6 @@ export default async function TmdbWatchPage({ params }: WatchPageProps) {
           <ArrowLeft data-icon="inline-start" />
           Back to catalog
         </Button>
-
         <section className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-2xl" aria-label={`${name} video player`}>
           <MovieWatchPlayer uuid={mapping.uuid} slug={mapping.slug} title={name} />
           <div className="flex items-center gap-3 border-t border-border/60 px-4 py-3 text-xs text-muted-foreground md:px-5">
@@ -47,15 +43,10 @@ export default async function TmdbWatchPage({ params }: WatchPageProps) {
             <span className="ml-auto">Ad-free player</span>
           </div>
         </section>
-
         <section className="flex gap-5 border-t border-border/60 pt-6 md:gap-6" aria-labelledby="watch-title">
-          {tmdbImage(title.poster_path, "w342") && (
-            <img src={tmdbImage(title.poster_path, "w342")!} alt={`${name} poster`} className="hidden h-48 w-32 rounded-lg object-cover shadow-md sm:block" />
-          )}
+          {poster && <img src={poster} alt={`${name} poster`} className="hidden h-48 w-32 rounded-lg object-cover shadow-md sm:block" />}
           <div className="flex flex-col gap-2">
-            <p className="text-sm text-muted-foreground">
-              {type === "tv" ? "Series" : "Movie"}{runtime ? ` · ${runtime} min` : ""}
-            </p>
+            <p className="text-sm text-muted-foreground">Movie{runtime ? ` · ${runtime} min` : ""}</p>
             <h1 id="watch-title" className="text-balance text-3xl font-bold tracking-tight md:text-4xl">{name}</h1>
             <p className="max-w-3xl text-pretty leading-relaxed text-foreground/75">{title.overview || "No synopsis available."}</p>
           </div>
