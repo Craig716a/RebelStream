@@ -43,7 +43,7 @@ export default async function TmdbWatchPage({ params, searchParams }: WatchPageP
           <div className="flex items-center gap-3 border-t border-border/60 px-4 py-3 text-xs text-muted-foreground md:px-5">
             <Clapperboard className="size-4" aria-hidden="true" />
             <span>{type === "tv" ? "Series player" : "Movie player"}</span>
-            <span className="ml-auto">Filmu player</span>
+            <span className="ml-auto">Vidy player</span>
           </div>
         </section>
 

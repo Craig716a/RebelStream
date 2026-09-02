@@ -21,7 +21,7 @@ function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, seaso
     return `https://www.vidy.st/movie/${tmdbId}?color=DC2626`
   }
 
-  return `https://www.vidy.st/tv/${tmdbId}?season=${season}&episode=${episode}&color=DC2626`
+  return `https://www.vidy.st/tv/${tmdbId}/${season}/${episode}?color=DC2626`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
