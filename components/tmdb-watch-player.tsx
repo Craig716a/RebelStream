@@ -17,13 +17,13 @@ function positiveInteger(value: number | undefined, fallback: number) {
 }
 
 function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, season: number, episode: number) {
-  const url = new URL("https://multiembed.cc/")
-  url.searchParams.set("tmdb", "1")
-  url.searchParams.set("id", String(tmdbId))
-  if (type === "tv") {
-    url.searchParams.set("s", String(season))
-    url.searchParams.set("e", String(episode))
+  if (type === "movie") {
+    return `https://embed.filmu.in/movie/${tmdbId}`
   }
+
+  const url = new URL(`https://embed.filmu.in/tv/${tmdbId}`)
+  url.searchParams.set("season", String(season))
+  url.searchParams.set("episode", String(episode))
   return url.toString()
 }
 
