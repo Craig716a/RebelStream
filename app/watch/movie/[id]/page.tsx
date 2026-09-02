@@ -34,7 +34,7 @@ export default async function MovieWatchPage({ params }: MovieWatchPageProps) {
           Back to catalog
         </Button>
         <section className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-2xl" aria-label={`${name} video player`}>
-          <MovieWatchPlayer tmdbId={id} title={name} />
+          <MovieWatchPlayer type="movie" tmdbId={id} title={name} />
           <div className="flex items-center gap-3 border-t border-border/60 px-4 py-3 text-xs text-muted-foreground md:px-5">
             <Clapperboard className="size-4" aria-hidden="true" />
             <span>Movie player</span>

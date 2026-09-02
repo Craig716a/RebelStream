@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ChevronDown, ChevronLeft, ChevronRight, ListVideo, RotateCcw, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -18,17 +18,35 @@ function positiveInteger(value: number | undefined, fallback: number) {
 
 function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, season: number, episode: number) {
   if (type === "movie") {
-    return `https://www.vidy.st/movie/${tmdbId}?color=DC2626`
+    return `https://vidy.st/movie/${tmdbId}?color=22C55E&progress=90`
   }
 
-  return `https://www.vidy.st/tv/${tmdbId}/${season}/${episode}?color=DC2626`
+  return `https://vidy.st/tv/${tmdbId}/${season}/${episode}?nextEpisode=true&episodeSelector=true&autoplayNextEpisode=true`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
   const [season, setSeason] = useState(positiveInteger(initialSeason, 1))
   const [episode, setEpisode] = useState(positiveInteger(initialEpisode, 1))
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
   const embedUrl = useMemo(() => buildEmbedUrl(type, tmdbId, season, episode), [type, tmdbId, season, episode])
+
+  useEffect(() => {
+    function handlePlayerMessage(event: MessageEvent) {
+      if (typeof event.data !== "string") return
+      try {
+        const payload = JSON.parse(event.data) as { event?: string; currentTime?: unknown }
+        if (payload.event === "timeupdate" && typeof payload.currentTime === "number") {
+          setCurrentTime(payload.currentTime)
+        }
+      } catch {
+        // Ignore non-JSON messages sent by the embedded player.
+      }
+    }
+
+    window.addEventListener("message", handlePlayerMessage)
+    return () => window.removeEventListener("message", handlePlayerMessage)
+  }, [])
 
   function selectEpisode(nextSeason: number, nextEpisode: number) {
     setSeason(positiveInteger(nextSeason, 1))
