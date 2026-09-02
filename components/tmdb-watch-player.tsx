@@ -18,10 +18,10 @@ function positiveInteger(value: number | undefined, fallback: number) {
 
 function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, season: number, episode: number) {
   if (type === "movie") {
-    return `https://embed.filmu.in/movie/${tmdbId}`
+    return `https://vidy.st/movie/${tmdbId}?color=DC2626`
   }
 
-  return `https://embed.filmu.in/tv/${tmdbId}/${season}/${episode}`
+  return `https://vidy.st/tv/${tmdbId}/${season}/${episode}?color=DC2626`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
@@ -36,7 +36,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
 
   useEffect(() => {
     function handlePlayerMessage(event: MessageEvent) {
-      if (event.origin !== "https://embed.filmu.in") return
+      if (event.origin !== "https://vidy.st" && event.origin !== "https://www.vidy.st") return
       if (!event.data || typeof event.data !== "object") return
 
       const payload = event.data as {
