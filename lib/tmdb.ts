@@ -76,6 +76,12 @@ export async function getTmdbGenreNames() {
   return [...unique.values()].sort((a, b) => a.name.localeCompare(b.name))
 }
 
+export async function searchTmdb(query: string, page = 1) {
+  const data = await tmdbFetch<{ results: TmdbTitle[]; page?: number; total_pages?: number; total_results?: number }>(`/search/multi?query=${encodeURIComponent(query)}&language=en-US&page=${page}&include_adult=false`)
+  const items = data.results.filter((item) => item.media_type === "movie" || item.media_type === "tv")
+  return { items, page: data.page ?? page, total_pages: data.total_pages ?? 1, total_results: data.total_results ?? items.length }
+}
+
 export async function getTmdbTitle(id: number, type: "movie" | "tv") {
   return tmdbFetch<TmdbTitle & { runtime?: number; episode_run_time?: number[] }>(`/${type}/${id}?language=en-US`)
 }

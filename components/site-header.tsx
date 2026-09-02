@@ -4,10 +4,9 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Search, X } from "lucide-react"
-import type { Category } from "@/lib/db/schema"
 import { cn } from "@/lib/utils"
 
-export function SiteHeader({ categories }: { categories: Category[] }) {
+export function SiteHeader(_props?: { categories?: unknown[] }) {
   const router = useRouter()
   const params = useSearchParams()
   const [scrolled, setScrolled] = useState(false)
@@ -40,22 +39,7 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
           </span>
         </Link>
 
-        <nav
-          aria-label="Browse categories"
-          className="flex min-w-0 flex-1 items-center gap-4 overflow-x-auto text-sm text-muted-foreground [scrollbar-width:none] md:gap-5 [&::-webkit-scrollbar]:hidden"
-        >
-          <Link href="/" className="shrink-0 font-medium transition-colors hover:text-foreground">
-            Home
-          </Link>
-          <Link href="/#popular" className="shrink-0 transition-colors hover:text-foreground">
-            Popular
-          </Link>
-          {categories.map((c) => (
-            <Link key={c.id} href={`/category/${c.slug}`} className="shrink-0 transition-colors hover:text-foreground">
-              {c.name}
-            </Link>
-          ))}
-        </nav>
+        <div className="flex-1" />
 
         <div className="ml-auto flex items-center gap-2">
           <Link

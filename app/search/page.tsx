@@ -1,6 +1,6 @@
-import { getCategories, searchMovies } from "@/app/actions/movies"
+import { searchTmdb } from "@/lib/tmdb"
 import { SiteHeader } from "@/components/site-header"
-import { MovieCard } from "@/components/movie-card"
+import { TmdbGrid } from "@/components/tmdb-grid"
 import { SiteFooter } from "@/components/site-footer"
 
 export const dynamic = "force-dynamic"
@@ -12,14 +12,13 @@ export default async function SearchPage({
 }) {
   const { q } = await searchParams
   const query = (q ?? "").trim()
-  const [categories, results] = await Promise.all([
-    getCategories(),
-    query ? searchMovies(query) : Promise.resolve([]),
-  ])
+  const { items: results } = query
+    ? await searchTmdb(query)
+    : { items: [] }
 
   return (
     <div className="min-h-screen bg-background">
-      <SiteHeader categories={categories} />
+      <SiteHeader />
       <main className="mx-auto max-w-[1600px] px-4 pb-16 pt-24 md:px-8">
         <h1 className="mb-6 text-2xl font-bold">
           {query ? (
@@ -37,13 +36,7 @@ export default async function SearchPage({
 
         {!query && <p className="text-muted-foreground">Type a title or genre in the search bar above.</p>}
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {results.map((m) => (
-            <div key={m.id} className="w-full">
-              <MovieCard movie={m} />
-            </div>
-          ))}
-        </div>
+        <TmdbGrid items={results} />
       </main>
       <SiteFooter />
     </div>

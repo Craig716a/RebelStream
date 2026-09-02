@@ -18,13 +18,10 @@ function positiveInteger(value: number | undefined, fallback: number) {
 
 function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, season: number, episode: number) {
   if (type === "movie") {
-    return `https://embed.filmu.in/movie/${tmdbId}`
+    return `https://www.vidy.st/movie/${tmdbId}?color=DC2626`
   }
 
-  const url = new URL(`https://embed.filmu.in/tv/${tmdbId}`)
-  url.searchParams.set("season", String(season))
-  url.searchParams.set("episode", String(episode))
-  return url.toString()
+  return `https://www.vidy.st/tv/${tmdbId}?season=${season}&episode=${episode}&color=DC2626`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
