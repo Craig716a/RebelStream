@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
-import { ChevronDown, ChevronLeft, ChevronRight, ListVideo, RotateCcw, X } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { ChevronDown, ChevronLeft, ChevronRight, ListVideo, LoaderCircle, Maximize, RotateCcw, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 type TmdbWatchPlayerProps = {
@@ -29,6 +29,9 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
   const [episode, setEpisode] = useState(positiveInteger(initialEpisode, 1))
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const loadingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const playerRef = useRef<HTMLDivElement>(null)
   const embedUrl = useMemo(() => buildEmbedUrl(type, tmdbId, season, episode), [type, tmdbId, season, episode])
 
   useEffect(() => {
@@ -60,6 +63,11 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
 
       if (payload.type === "FILMU_PLAYER_EVENT" && payload.data) {
         const { event: playerEvent, currentTime: time } = payload.data
+        if (playerEvent === "play") {
+          setLoading(true)
+          if (loadingTimer.current) clearTimeout(loadingTimer.current)
+          loadingTimer.current = setTimeout(() => setLoading(false), 4000)
+        }
         if (playerEvent === "timeupdate" && typeof time === "number") {
           setCurrentTime(time)
         }
@@ -80,9 +88,20 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
     setEpisode((current) => current + 1)
   }
 
+  async function enterFullscreen() {
+    const element = playerRef.current
+    if (!element) return
+    await element.requestFullscreen?.()
+    try {
+      await screen.orientation?.lock("landscape")
+    } catch {
+      // Orientation locking is unavailable in some mobile browsers.
+    }
+  }
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="relative aspect-video w-full overflow-hidden bg-black">
+      <div ref={playerRef} className="relative aspect-video w-full overflow-hidden bg-black">
         <iframe
           key={embedUrl}
           src={embedUrl}
@@ -93,12 +112,20 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
           loading="eager"
           referrerPolicy="strict-origin-when-cross-origin"
         />
+        {loading && (
+          <div className="absolute inset-0 grid place-items-center bg-black" role="status" aria-live="polite">
+            <LoaderCircle className="size-9 animate-spin text-primary" aria-label="Loading player" />
+          </div>
+        )}
+        <Button type="button" variant="secondary" size="icon" className="absolute right-3 top-3 bg-background/90 shadow-lg backdrop-blur-sm" onClick={enterFullscreen} aria-label="Open player fullscreen">
+          <Maximize />
+        </Button>
         {type === "tv" && (
           <Button
             type="button"
             variant="secondary"
             size="sm"
-            className="absolute right-3 top-3 gap-2 bg-background/90 shadow-lg backdrop-blur-sm hover:bg-background"
+            className="absolute right-16 top-3 gap-2 bg-background/90 shadow-lg backdrop-blur-sm hover:bg-background"
             aria-expanded={drawerOpen}
             aria-controls="episode-drawer"
             onClick={() => setDrawerOpen((open) => !open)}

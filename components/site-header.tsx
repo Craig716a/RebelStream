@@ -34,8 +34,8 @@ export function SiteHeader(_props?: { categories?: unknown[] }) {
     >
       <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-6 px-4 md:px-8">
         <Link href="/" className="shrink-0">
-          <span className="text-2xl font-extrabold uppercase tracking-tight text-primary md:text-3xl">
-            Rebel<span className="text-foreground">Stream</span>
+          <span className="text-3xl font-extrabold uppercase tracking-tight text-primary md:text-4xl">
+            Rebel<span className="text-primary">Stream</span>
           </span>
         </Link>
 
