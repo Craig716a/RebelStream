@@ -94,8 +94,18 @@ export function tmdbYear(item: TmdbTitle) {
   return (item.release_date ?? item.first_air_date ?? "").slice(0, 4)
 }
 
+export function slugifyTitle(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "title"
+}
+
 export function tmdbWatchPath(item: TmdbTitle) {
-  return `/watch/${item.media_type ?? "movie"}/${item.id}`
+  const type = item.media_type ?? "movie"
+  return `/watch/${type}/${slugifyTitle(tmdbTitle(item))}/${item.id}`
 }
 
 export { IMAGE_BASE }

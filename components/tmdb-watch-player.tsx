@@ -18,10 +18,10 @@ function positiveInteger(value: number | undefined, fallback: number) {
 
 function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, season: number, episode: number) {
   if (type === "movie") {
-    return `https://vidy.st/movie/${tmdbId}?color=DC2626`
+    return `https://embed.su/embed/movie/${tmdbId}`
   }
 
-  return `https://vidy.st/tv/${tmdbId}/${season}/${episode}?color=DC2626`
+  return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
