@@ -2,7 +2,6 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft, Clapperboard } from "lucide-react"
 import { getTmdbTitle, tmdbImage, tmdbTitle } from "@/lib/tmdb"
-import { getMovieMapping } from "@/lib/movie-mapping"
 import { Button } from "@/components/ui/button"
 import { MovieWatchPlayer } from "@/components/tmdb-watch-player"
 
@@ -24,8 +23,6 @@ export default async function TmdbWatchPage({ params }: WatchPageProps) {
   const id = positiveInteger(rawId)
   if (!id) notFound()
 
-  const mapping = getMovieMapping(rawId)
-  if (!mapping) notFound()
 
   const title = await getTmdbTitle(id, "movie")
   const name = tmdbTitle(title)
@@ -40,7 +37,7 @@ export default async function TmdbWatchPage({ params }: WatchPageProps) {
         </Button>
 
         <section className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-2xl" aria-label={`${name} video player`}>
-          <MovieWatchPlayer uuid={mapping.uuid} slug={mapping.slug} title={name} />
+          <MovieWatchPlayer tmdbId={id} title={name} />
           <div className="flex items-center gap-3 border-t border-border/60 px-4 py-3 text-xs text-muted-foreground md:px-5">
             <Clapperboard className="size-4" aria-hidden="true" />
             <span>Movie player</span>

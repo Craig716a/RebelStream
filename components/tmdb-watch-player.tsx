@@ -1,15 +1,14 @@
 type MovieWatchPlayerProps = {
-  uuid: string
-  slug: string
+  tmdbId: number
   title: string
 }
 
-function buildEmbedUrl({ uuid, slug }: MovieWatchPlayerProps) {
-  return `https://xstreamx.films365.org/movie/${encodeURIComponent(uuid)}/${encodeURIComponent(slug)}`
+function buildEmbedUrl(tmdbId: number) {
+  return `https://www.f-movies.org/movie/movie-${tmdbId}`
 }
 
-export function MovieWatchPlayer({ uuid, slug, title }: MovieWatchPlayerProps) {
-  const embedUrl = buildEmbedUrl({ uuid, slug, title })
+export function MovieWatchPlayer({ tmdbId, title }: MovieWatchPlayerProps) {
+  const embedUrl = buildEmbedUrl(tmdbId)
 
   return (
     <div className="relative aspect-video w-full overflow-hidden bg-black">
