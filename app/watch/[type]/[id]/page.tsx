@@ -9,24 +9,26 @@ export const dynamic = "force-dynamic"
 
 type WatchPageProps = {
   params: Promise<{ type: string; id: string }>
+  searchParams: Promise<{ season?: string; episode?: string }>
 }
 
-function positiveInteger(value: string) {
+function positiveInteger(value: string | undefined, fallback?: number) {
   const parsed = Number(value)
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback
 }
 
-export default async function TmdbWatchPage({ params }: WatchPageProps) {
-  const { type, id: rawId } = await params
-  if (type !== "movie") notFound()
+export default async function TmdbWatchPage({ params, searchParams }: WatchPageProps) {
+  const [{ type, id: rawId }, query] = await Promise.all([params, searchParams])
+  if (type !== "movie" && type !== "tv") notFound()
 
   const id = positiveInteger(rawId)
   if (!id) notFound()
 
-
-  const title = await getTmdbTitle(id, "movie")
+  const title = await getTmdbTitle(id, type)
   const name = tmdbTitle(title)
   const runtime = title.runtime ?? title.episode_run_time?.[0]
+  const season = positiveInteger(query.season, 1)
+  const episode = positiveInteger(query.episode, 1)
 
   return (
     <main className="min-h-screen bg-background">
@@ -37,11 +39,11 @@ export default async function TmdbWatchPage({ params }: WatchPageProps) {
         </Button>
 
         <section className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-2xl" aria-label={`${name} video player`}>
-          <MovieWatchPlayer tmdbId={id} title={name} />
+          <MovieWatchPlayer type={type} tmdbId={id} title={name} initialSeason={season} initialEpisode={episode} />
           <div className="flex items-center gap-3 border-t border-border/60 px-4 py-3 text-xs text-muted-foreground md:px-5">
             <Clapperboard className="size-4" aria-hidden="true" />
-            <span>Movie player</span>
-            <span className="ml-auto">Ad-free player</span>
+            <span>{type === "tv" ? "Series player" : "Movie player"}</span>
+            <span className="ml-auto">Multi-embed player</span>
           </div>
         </section>
 
@@ -51,7 +53,7 @@ export default async function TmdbWatchPage({ params }: WatchPageProps) {
           )}
           <div className="flex flex-col gap-2">
             <p className="text-sm text-muted-foreground">
-              {type === "tv" ? "Series" : "Movie"}{runtime ? ` · ${runtime} min` : ""}
+              {type === "tv" ? `Series · S${season} E${episode}` : "Movie"}{runtime ? ` · ${runtime} min` : ""}
             </p>
             <h1 id="watch-title" className="text-balance text-3xl font-bold tracking-tight md:text-4xl">{name}</h1>
             <p className="max-w-3xl text-pretty leading-relaxed text-foreground/75">{title.overview || "No synopsis available."}</p>
