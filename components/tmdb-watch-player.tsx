@@ -18,10 +18,10 @@ function positiveInteger(value: number | undefined, fallback: number) {
 
 function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, season: number, episode: number) {
   if (type === "movie") {
-    return `https://vidy.st/movie/${tmdbId}?color=22C55E&progress=90`
+    return `https://embed.filmu.in/movie/${tmdbId}`
   }
 
-  return `https://vidy.st/tv/${tmdbId}/${season}/${episode}?nextEpisode=true&episodeSelector=true&autoplayNextEpisode=true`
+  return `https://embed.filmu.in/tv/${tmdbId}/${season}/${episode}`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
@@ -33,14 +33,36 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
 
   useEffect(() => {
     function handlePlayerMessage(event: MessageEvent) {
-      if (typeof event.data !== "string") return
-      try {
-        const payload = JSON.parse(event.data) as { event?: string; currentTime?: unknown }
-        if (payload.event === "timeupdate" && typeof payload.currentTime === "number") {
-          setCurrentTime(payload.currentTime)
+      if (event.origin !== "https://embed.filmu.in") return
+      if (!event.data || typeof event.data !== "object") return
+
+      const payload = event.data as {
+        type?: string
+        data?: {
+          media_id?: string | number
+          media_type?: string
+          title?: string
+          duration?: number
+          watched?: number
+          poster?: string
+          season?: number
+          episode?: number
+          event?: "play" | "pause" | "seeked" | "timeupdate" | "ended"
+          currentTime?: number
+          tmdbId?: string | number
         }
-      } catch {
-        // Ignore non-JSON messages sent by the embedded player.
+      }
+
+      if (payload.type === "SYNC_HISTORY" && payload.data) {
+        // Hook this payload into persistence when watch-history storage is enabled.
+        return
+      }
+
+      if (payload.type === "FILMU_PLAYER_EVENT" && payload.data) {
+        const { event: playerEvent, currentTime: time } = payload.data
+        if (playerEvent === "timeupdate" && typeof time === "number") {
+          setCurrentTime(time)
+        }
       }
     }
 
