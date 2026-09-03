@@ -16,9 +16,14 @@ function positiveInteger(value: number | undefined, fallback: number) {
   return Number.isInteger(value) && value && value > 0 ? value : fallback
 }
 
-function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, _season: number, _episode: number) {
-  const mediaPath = type === "movie" ? "movie" : "tv"
-  return `https://cinesrc.st/embed/${mediaPath}/${encodeURIComponent(String(tmdbId))}`
+function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, season: number, episode: number) {
+  const encodedId = encodeURIComponent(String(tmdbId))
+
+  if (type === "movie") {
+    return `https://cinesrc.st/embed/movie/${encodedId}`
+  }
+
+  return `https://cinesrc.st/embed/tv/${encodedId}/${season}/${episode}`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
