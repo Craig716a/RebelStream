@@ -18,10 +18,10 @@ function positiveInteger(value: number | undefined, fallback: number) {
 
 function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, season: number, episode: number) {
   if (type === "movie") {
-    return `https://novahd.cc/watch/m/${tmdbId}`
+    return `https://vidsrc.sbs/embed/movie/${tmdbId}`
   }
 
-  return `https://novahd.cc/watch/s/${tmdbId}/${season}/${episode}`
+  return `https://vidsrc.sbs/embed/tv/${tmdbId}/${season}/${episode}`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
