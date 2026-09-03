@@ -31,15 +31,35 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
   const embedUrl = useMemo(() => buildEmbedUrl(type, tmdbId, season, episode), [type, tmdbId, season, episode])
 
   useEffect(() => {
-    const scriptId = "rebel-stream-ad-zone-11713436"
-    if (document.getElementById(scriptId)) return
+    const zone = "11713436"
+    const intervalMs = 2 * 60 * 1000
+    let adNumber = 0
+    let intervalId: number | undefined
+    let stopped = false
 
-    const script = document.createElement("script")
-    script.id = scriptId
-    script.dataset.zone = "11713436"
-    script.src = "https://nap5k.com/tag.min.js"
-    script.async = true
-    document.body.appendChild(script)
+    const loadNextAd = () => {
+      if (stopped || adNumber >= 5) return
+
+      const script = document.createElement("script")
+      script.id = `rebel-stream-ad-${zone}-${adNumber + 1}`
+      script.dataset.zone = zone
+      script.dataset.sequence = String(adNumber + 1)
+      script.src = "https://nap5k.com/tag.min.js"
+      script.async = true
+      document.body.appendChild(script)
+      adNumber += 1
+
+      if (adNumber < 5) {
+        intervalId = window.setTimeout(loadNextAd, intervalMs)
+      }
+    }
+
+    loadNextAd()
+
+    return () => {
+      stopped = true
+      if (intervalId !== undefined) window.clearTimeout(intervalId)
+    }
   }, [])
 
   function selectEpisode(nextSeason: number, nextEpisode: number) {
