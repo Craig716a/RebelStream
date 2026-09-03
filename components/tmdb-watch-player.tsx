@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { ChevronDown, ChevronLeft, ChevronRight, ListVideo, Maximize, RotateCcw, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -11,6 +11,7 @@ type TmdbWatchPlayerProps = {
   imdbId?: string | null
   initialSeason?: number
   initialEpisode?: number
+  episodeCounts?: Record<number, number>
 }
 
 function positiveInteger(value: number | undefined, fallback: number) {
@@ -26,13 +27,13 @@ function buildEmbedUrl(
   const encodedTmdb = encodeURIComponent(String(tmdbId))
 
   if (type === "movie") {
-    return `https://cinesrc.st/embed/movie/${encodedTmdb}?autoplay=1`
+    return `https://cinesrc.st/embed/movie/${encodedTmdb}`
   }
-  return `https://cinesrc.st/embed/tv/${encodedTmdb}/${season}/${episode}?autoplay=1`
+  return `https://cinesrc.st/embed/tv/${encodedTmdb}/${season}/${episode}`
 }
 
 
-export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
+export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode, episodeCounts = {} }: TmdbWatchPlayerProps) {
   const [season, setSeason] = useState(positiveInteger(initialSeason, 1))
   const [episode, setEpisode] = useState(positiveInteger(initialEpisode, 1))
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -42,6 +43,31 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
     [type, tmdbId, season, episode],
   )
 
+  function advanceAfterEpisode() {
+    if (type === "movie") return
+    const lastEpisode = episodeCounts[season]
+    if (lastEpisode && episode >= lastEpisode) {
+      const nextSeason = Object.keys(episodeCounts).map(Number).filter((value) => value > season).sort((a, b) => a - b)[0]
+      if (nextSeason) {
+        selectEpisode(nextSeason, 1)
+        return
+      }
+    }
+    setEpisode((current) => current + 1)
+    setDrawerOpen(false)
+  }
+
+  useEffect(() => {
+    if (type === "movie") return
+    function handlePlayerMessage(event: MessageEvent) {
+      if (event.origin !== "https://cinesrc.st") return
+      const data = typeof event.data === "string" ? event.data.toLowerCase() : event.data?.type?.toString().toLowerCase()
+      if (data === "ended" || data === "episodeended" || data === "videoended" ) advanceAfterEpisode()
+    }
+    window.addEventListener("message", handlePlayerMessage)
+    return () => window.removeEventListener("message", handlePlayerMessage)
+  }, [type, season, episode, episodeCounts])
+
   function selectEpisode(nextSeason: number, nextEpisode: number) {
     setSeason(positiveInteger(nextSeason, 1))
     setEpisode(positiveInteger(nextEpisode, 1))
@@ -49,8 +75,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
   }
 
   function nextEpisode() {
-    setEpisode((current) => current + 1)
-    setDrawerOpen(false)
+    advanceAfterEpisode()
   }
 
   async function enterFullscreen() {

@@ -94,7 +94,7 @@ export async function searchTmdb(query: string, page = 1) {
 }
 
 export async function getTmdbTitle(id: number, type: "movie" | "tv") {
-  return tmdbFetch<TmdbTitle & { runtime?: number; episode_run_time?: number[] }>(`/${type}/${id}?language=en-US`)
+  return tmdbFetch<TmdbTitle & { runtime?: number; episode_run_time?: number[]; seasons?: Array<{ season_number: number; episode_count: number }> }>(`/${type}/${id}?language=en-US`)
 }
 
 // vsembed's movie endpoint expects an IMDb id (e.g. tt1300854), while the app
