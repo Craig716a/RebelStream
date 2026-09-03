@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { ChevronDown, ChevronLeft, ChevronRight, ListVideo, Maximize, RotateCcw, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -40,6 +40,44 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
   const [drawerOpen, setDrawerOpen] = useState(false)
   const playerRef = useRef<HTMLDivElement>(null)
   const embedUrl = useMemo(() => buildEmbedUrl(type, tmdbId, season, episode, imdbId), [type, tmdbId, season, episode, imdbId])
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const playerFocusedRef = useRef(false)
+
+  useEffect(() => {
+    // Safeguard against the embed hijacking the page. We can't sandbox the
+    // iframe (the provider refuses to load when sandboxed), so we guard the
+    // top-level window instead.
+    function handleBeforeUnload(event: BeforeUnloadEvent) {
+      // Only intercept navigations that fire while the player iframe is focused.
+      // Ad-injected redirects happen then; real in-site navigation happens when
+      // the iframe is not focused, so those are left untouched.
+      if (!playerFocusedRef.current) return
+      event.preventDefault()
+      event.returnValue = ""
+    }
+
+    function handleBlur() {
+      if (document.activeElement === iframeRef.current) {
+        playerFocusedRef.current = true
+        // Pop-unders steal focus by opening a background tab; pull it back so
+        // the user stays on this site.
+        window.setTimeout(() => window.focus(), 0)
+      }
+    }
+
+    function handleFocus() {
+      playerFocusedRef.current = false
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload)
+    window.addEventListener("blur", handleBlur)
+    window.addEventListener("focus", handleFocus)
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload)
+      window.removeEventListener("blur", handleBlur)
+      window.removeEventListener("focus", handleFocus)
+    }
+  }, [])
 
   function selectEpisode(nextSeason: number, nextEpisode: number) {
     setSeason(positiveInteger(nextSeason, 1))
@@ -67,6 +105,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
     <div className="flex flex-col gap-3">
       <div ref={playerRef} className="relative aspect-video w-full overflow-hidden bg-black">
         <iframe
+          ref={iframeRef}
           key={`${embedUrl}-${season}-${episode}`}
           src={embedUrl}
           title={`${title} ${type === "tv" ? `season ${season} episode ${episode}` : "movie"} player`}
