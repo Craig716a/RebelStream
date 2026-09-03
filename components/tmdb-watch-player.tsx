@@ -21,7 +21,7 @@ function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, seaso
     return `https://novahd.cc/watch/m/${tmdbId}`
   }
 
-  return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`
+  return `https://novahd.cc/watch/s/${tmdbId}/${season}/${episode}`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
