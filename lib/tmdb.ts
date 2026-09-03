@@ -104,8 +104,8 @@ export function slugifyTitle(value: string) {
 }
 
 export function tmdbWatchPath(item: TmdbTitle) {
-  const type = item.media_type ?? "movie"
-  return `/watch/${type}/${slugifyTitle(tmdbTitle(item))}/${item.id}`
+  const type = item.media_type === "tv" ? "tv" : "movie"
+  return `/watch/${type}/${item.id}`
 }
 
 export { IMAGE_BASE }
