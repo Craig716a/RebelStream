@@ -7,12 +7,25 @@ import { Button } from "@/components/ui/button"
 import { tmdbImage, tmdbTitle, tmdbWatchPath, tmdbYear, type TmdbTitle } from "@/lib/tmdb"
 
 export function TmdbFeaturedHero({ items }: { items: TmdbTitle[] }) {
+  const storageKey = "rebel-stream-featured-index"
   const [active, setActive] = useState(0)
   const current = items[active]
 
   useEffect(() => {
     if (items.length < 2) return
-    const timer = window.setInterval(() => setActive((index) => (index + 1) % items.length), 7000)
+    const saved = Number.parseInt(window.sessionStorage.getItem(storageKey) ?? "0", 10)
+    if (Number.isInteger(saved) && saved >= 0) setActive(saved % items.length)
+  }, [items.length])
+
+  useEffect(() => {
+    if (items.length < 2) return
+    const timer = window.setInterval(() => {
+      setActive((index) => {
+        const next = (index + 1) % items.length
+        window.sessionStorage.setItem(storageKey, String(next))
+        return next
+      })
+    }, 7000)
     return () => window.clearInterval(timer)
   }, [items.length])
 
@@ -36,7 +49,10 @@ export function TmdbFeaturedHero({ items }: { items: TmdbTitle[] }) {
             <Button render={<Link href={tmdbWatchPath(current)} />} nativeButton={false} size="lg" variant="secondary" className="gap-2"><Info data-icon="inline-start" />More info</Button>
           </div>
           <div className="mt-8 flex gap-2" aria-label="Featured title selector">
-            {items.map((item, index) => <button key={`${item.media_type}-${item.id}`} type="button" aria-label={`Show ${tmdbTitle(item)}`} aria-current={index === active} onClick={() => setActive(index)} className={`h-1.5 rounded-full transition-all ${index === active ? "w-8 bg-primary" : "w-4 bg-foreground/40"}`} />)}
+            {items.map((item, index) => <button key={`${item.media_type}-${item.id}`} type="button" aria-label={`Show ${tmdbTitle(item)}`} aria-current={index === active} onClick={() => {
+                setActive(index)
+                window.sessionStorage.setItem(storageKey, String(index))
+              }} className={`h-1.5 rounded-full transition-all ${index === active ? "w-8 bg-primary" : "w-4 bg-foreground/40"}`} />)}
           </div>
         </div>
       </div>
