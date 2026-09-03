@@ -23,7 +23,7 @@ function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, seaso
     return `https://cinesrc.st/embed/movie/${encodedId}`
   }
 
-  return `https://cinesrc.st/embed/tv/${encodedId}/${season}/${episode}`
+  return `https://cinesrc.st/embed/tv/${encodedId}?s=${season}&e=${episode}`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
