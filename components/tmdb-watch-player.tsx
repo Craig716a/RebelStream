@@ -32,33 +32,34 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
 
   useEffect(() => {
     const zone = "11713436"
-    const intervalMs = 2 * 60 * 1000
-    let adNumber = 0
-    let intervalId: number | undefined
-    let stopped = false
+    const maxAds = 5
+    const windowMs = 10 * 60 * 1000
+    const adKey = `rebel-stream-ad-count-${zone}`
+    const resetKey = `rebel-stream-ad-reset-${zone}`
+    const now = Date.now()
+    let count = Number.parseInt(window.localStorage.getItem(adKey) ?? "0", 10)
+    let resetAt = Number.parseInt(window.localStorage.getItem(resetKey) ?? "0", 10)
 
-    const loadNextAd = () => {
-      if (stopped || adNumber >= 5) return
-
-      const script = document.createElement("script")
-      script.id = `rebel-stream-ad-${zone}-${adNumber + 1}`
-      script.dataset.zone = zone
-      script.dataset.sequence = String(adNumber + 1)
-      script.src = "https://nap5k.com/tag.min.js"
-      script.async = true
-      document.body.appendChild(script)
-      adNumber += 1
-
-      if (adNumber < 5) {
-        intervalId = window.setTimeout(loadNextAd, intervalMs)
-      }
+    if (!Number.isFinite(count) || !Number.isFinite(resetAt) || now >= resetAt) {
+      count = 0
+      resetAt = now + windowMs
+      window.localStorage.setItem(adKey, "0")
+      window.localStorage.setItem(resetKey, String(resetAt))
     }
 
-    loadNextAd()
+    if (count >= maxAds) return
+
+    const script = document.createElement("script")
+    script.id = `rebel-stream-ad-${zone}-${count + 1}-${now}`
+    script.dataset.zone = zone
+    script.dataset.sequence = String(count + 1)
+    script.src = "https://nap5k.com/tag.min.js"
+    script.async = true
+    document.body.appendChild(script)
+    window.localStorage.setItem(adKey, String(count + 1))
 
     return () => {
-      stopped = true
-      if (intervalId !== undefined) window.clearTimeout(intervalId)
+      script.remove()
     }
   }, [])
 
