@@ -26,9 +26,9 @@ function buildEmbedUrl(
   const encodedTmdb = encodeURIComponent(String(tmdbId))
 
   if (type === "movie") {
-    return `https://cinesrc.st/embed/movie/${encodedTmdb}`
+    return `https://cinesrc.st/embed/movie/${encodedTmdb}?autoplay=1`
   }
-  return `https://cinesrc.st/embed/tv/${encodedTmdb}/${season}/${episode}`
+  return `https://cinesrc.st/embed/tv/${encodedTmdb}/${season}/${episode}?autoplay=1`
 }
 
 
