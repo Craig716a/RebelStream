@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
-import { ChevronDown, ChevronLeft, ChevronRight, ListVideo, LoaderCircle, Maximize, RotateCcw, X } from "lucide-react"
+import { useMemo, useRef, useState } from "react"
+import { ChevronDown, ChevronLeft, ChevronRight, ListVideo, Maximize, RotateCcw, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 type TmdbWatchPlayerProps = {
@@ -28,55 +28,8 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
   const [season, setSeason] = useState(positiveInteger(initialSeason, 1))
   const [episode, setEpisode] = useState(positiveInteger(initialEpisode, 1))
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [loading, setLoading] = useState(false)
-  const loadingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const playerRef = useRef<HTMLDivElement>(null)
   const embedUrl = useMemo(() => buildEmbedUrl(type, tmdbId, season, episode), [type, tmdbId, season, episode])
-
-  useEffect(() => {
-    function handlePlayerMessage(event: MessageEvent) {
-      if (event.origin !== "https://vidy.st" && event.origin !== "https://www.vidy.st") return
-      if (!event.data || typeof event.data !== "object") return
-
-      const payload = event.data as {
-        type?: string
-        data?: {
-          media_id?: string | number
-          media_type?: string
-          title?: string
-          duration?: number
-          watched?: number
-          poster?: string
-          season?: number
-          episode?: number
-          event?: "play" | "pause" | "seeked" | "timeupdate" | "ended"
-          currentTime?: number
-          tmdbId?: string | number
-        }
-      }
-
-      if (payload.type === "SYNC_HISTORY" && payload.data) {
-        // Hook this payload into persistence when watch-history storage is enabled.
-        return
-      }
-
-      if (payload.type === "FILMU_PLAYER_EVENT" && payload.data) {
-        const { event: playerEvent, currentTime: time } = payload.data
-        if (playerEvent === "play") {
-          setLoading(true)
-          if (loadingTimer.current) clearTimeout(loadingTimer.current)
-          loadingTimer.current = setTimeout(() => setLoading(false), 4000)
-        }
-        if (playerEvent === "timeupdate" && typeof time === "number") {
-          setCurrentTime(time)
-        }
-      }
-    }
-
-    window.addEventListener("message", handlePlayerMessage)
-    return () => window.removeEventListener("message", handlePlayerMessage)
-  }, [])
 
   function selectEpisode(nextSeason: number, nextEpisode: number) {
     setSeason(positiveInteger(nextSeason, 1))
@@ -113,11 +66,6 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
           loading="eager"
           referrerPolicy="strict-origin-when-cross-origin"
         />
-        {loading && (
-          <div className="absolute inset-0 grid place-items-center bg-black" role="status" aria-live="polite">
-            <LoaderCircle className="size-9 animate-spin text-primary" aria-label="Loading player" />
-          </div>
-        )}
         <Button type="button" variant="secondary" size="icon" className="absolute right-3 top-3 bg-background/90 shadow-lg backdrop-blur-sm" onClick={enterFullscreen} aria-label="Open player fullscreen">
           <Maximize />
         </Button>
