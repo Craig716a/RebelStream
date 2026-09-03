@@ -74,9 +74,9 @@ export function LiveTmdbCatalog() {
 
   return (
     <section aria-label="TMDB catalog" className="mt-8">
-      <div className="mb-6 flex flex-wrap gap-2">
-        <button type="button" onClick={() => setGenre("")} className={`rounded-full border px-4 py-2 text-sm ${!genre ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>Popular</button>
-        {genres.map((item) => <button key={item.id} type="button" onClick={() => setGenre(String(item.id))} className={`rounded-full border px-4 py-2 text-sm ${genre === String(item.id) ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>{item.name}</button>)}
+      <div className="mb-6 flex max-w-full gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Movie categories">
+        <button type="button" onClick={() => setGenre("")} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs ${!genre ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>Popular</button>
+        {genres.map((item) => <button key={item.id} type="button" onClick={() => setGenre(String(item.id))} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs ${genre === String(item.id) ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>{item.name}</button>)}
       </div>
       {loading && <p className="py-16 text-center text-muted-foreground">Loading movies and series…</p>}
       {error && <p role="alert" className="py-16 text-center text-destructive">{error}</p>}

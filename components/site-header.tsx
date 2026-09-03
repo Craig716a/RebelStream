@@ -51,8 +51,8 @@ export function SiteHeader(_props?: { categories?: unknown[] }) {
           <form onSubmit={submit} className="flex items-center">
             <div
               className={cn(
-                "flex items-center overflow-hidden rounded-md border transition-all duration-300",
-                searchOpen ? "w-44 border-border bg-black/60 px-2 md:w-64" : "w-9 border-transparent",
+                "flex w-44 items-center overflow-hidden rounded-md border border-border bg-black/60 px-2 transition-all duration-300 md:w-9 md:border-transparent md:bg-transparent md:px-0",
+                searchOpen && "md:w-64 md:border-border md:bg-black/60 md:px-2",
               )}
             >
               <button
