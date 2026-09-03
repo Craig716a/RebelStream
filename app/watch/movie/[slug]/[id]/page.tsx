@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import { ArrowLeft, Clapperboard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MovieWatchPlayer } from "@/components/tmdb-watch-player"
-import { getTmdbTitle, slugifyTitle, tmdbImage, tmdbTitle } from "@/lib/tmdb"
+import { getTmdbTitle, tmdbImage, tmdbTitle } from "@/lib/tmdb"
 
 export const dynamic = "force-dynamic"
 
@@ -29,7 +29,9 @@ export default async function MovieWatchPage({ params }: MovieWatchPageProps) {
   }
 
   const name = tmdbTitle(title)
-  if (slug !== slugifyTitle(name)) notFound()
+  // The numeric TMDb ID is authoritative. Keep the slug in the URL for readability,
+  // but do not reject valid movies when a title changes or the slug is differently encoded.
+  void slug
   const poster = tmdbImage(title.poster_path, "w342")
   const runtime = title.runtime ?? title.episode_run_time?.[0]
 
