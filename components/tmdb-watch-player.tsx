@@ -34,11 +34,6 @@ function buildEmbedUrl(
   return `https://embed.filmu.in/tv/${encodedTmdb}/${season}/${episode}`
 }
 
-// The safeguard: this sandbox deliberately omits allow-popups and
-// allow-top-navigation, so the embed physically cannot open new tabs or
-// navigate away from the app. cinesrc.st tolerates being sandboxed.
-const PLAYER_SANDBOX =
-  "allow-forms allow-modals allow-orientation-lock allow-presentation allow-same-origin allow-scripts"
 
 export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
   const [season, setSeason] = useState(positiveInteger(initialSeason, 1))
@@ -85,7 +80,6 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
           allowFullScreen
           loading="eager"
           referrerPolicy="strict-origin-when-cross-origin"
-          sandbox={PLAYER_SANDBOX}
         />
         <Button type="button" variant="secondary" size="icon" className="absolute right-3 top-3 bg-background/90 shadow-lg backdrop-blur-sm" onClick={enterFullscreen} aria-label="Open player fullscreen">
           <Maximize />
