@@ -26,12 +26,9 @@ function buildEmbedUrl(
   const encodedTmdb = encodeURIComponent(String(tmdbId))
 
   if (type === "movie") {
-    return `https://embed.filmu.in/movie/${encodedTmdb}`
+    return `https://cinesrc.st/embed/movie/${encodedTmdb}`
   }
-  if (type === "anime") {
-    return `https://embed.filmu.in/anime/${encodedTmdb}/${season}/${episode}`
-  }
-  return `https://embed.filmu.in/tv/${encodedTmdb}/${season}/${episode}`
+  return `https://cinesrc.st/embed/tv/${encodedTmdb}/${season}/${episode}`
 }
 
 
@@ -80,6 +77,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
           allowFullScreen
           loading="eager"
           referrerPolicy="strict-origin-when-cross-origin"
+          sandbox="allow-forms allow-modals allow-orientation-lock allow-presentation allow-same-origin allow-scripts"
         />
         <Button type="button" variant="secondary" size="icon" className="absolute right-3 top-3 bg-background/90 shadow-lg backdrop-blur-sm" onClick={enterFullscreen} aria-label="Open player fullscreen">
           <Maximize />
