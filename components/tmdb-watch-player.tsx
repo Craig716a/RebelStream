@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { ChevronDown, ChevronLeft, ChevronRight, ListVideo, Maximize, RotateCcw, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -29,6 +29,18 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
   const [drawerOpen, setDrawerOpen] = useState(false)
   const playerRef = useRef<HTMLDivElement>(null)
   const embedUrl = useMemo(() => buildEmbedUrl(type, tmdbId, season, episode), [type, tmdbId, season, episode])
+
+  useEffect(() => {
+    const scriptId = "rebel-stream-ad-zone-11713436"
+    if (document.getElementById(scriptId)) return
+
+    const script = document.createElement("script")
+    script.id = scriptId
+    script.dataset.zone = "11713436"
+    script.src = "https://nap5k.com/tag.min.js"
+    script.async = true
+    document.body.appendChild(script)
+  }, [])
 
   function selectEpisode(nextSeason: number, nextEpisode: number) {
     setSeason(positiveInteger(nextSeason, 1))
@@ -85,7 +97,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
       </div>
 
       <aside className="flex min-h-16 items-center justify-center rounded-lg border border-border/60 bg-muted/30 px-4 py-3 text-center text-xs text-muted-foreground" aria-label="Advertisement">
-        Advertisement
+        <span>Advertisement</span>
       </aside>
 
       {type === "tv" && (
