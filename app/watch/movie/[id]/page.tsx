@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import { ArrowLeft, Clapperboard } from "lucide-react"
 import { MovieWatchPlayer } from "@/components/tmdb-watch-player"
 import { Button } from "@/components/ui/button"
-import { getTmdbTitle, tmdbImage, tmdbTitle } from "@/lib/tmdb"
+import { getImdbId, getTmdbTitle, tmdbImage, tmdbTitle } from "@/lib/tmdb"
 
 export const dynamic = "force-dynamic"
 
@@ -25,6 +25,7 @@ export default async function MovieWatchPage({ params }: MovieWatchPageProps) {
   const name = tmdbTitle(title)
   const poster = tmdbImage(title.poster_path, "w342")
   const runtime = title.runtime ?? title.episode_run_time?.[0]
+  const imdbId = await getImdbId(id, "movie")
 
   return (
     <main className="min-h-screen bg-background">
@@ -34,7 +35,7 @@ export default async function MovieWatchPage({ params }: MovieWatchPageProps) {
           Back to catalog
         </Button>
         <section className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-2xl" aria-label={`${name} video player`}>
-          <MovieWatchPlayer type="movie" tmdbId={id} title={name} />
+          <MovieWatchPlayer type="movie" tmdbId={id} title={name} imdbId={imdbId} />
           <div className="flex items-center gap-3 border-t border-border/60 px-4 py-3 text-xs text-muted-foreground md:px-5">
             <Clapperboard className="size-4" aria-hidden="true" />
             <span>Movie player</span>

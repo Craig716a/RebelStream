@@ -8,6 +8,7 @@ type TmdbWatchPlayerProps = {
   type: "movie" | "tv"
   tmdbId: number
   title: string
+  imdbId?: string | null
   initialSeason?: number
   initialEpisode?: number
 }
@@ -16,22 +17,29 @@ function positiveInteger(value: number | undefined, fallback: number) {
   return Number.isInteger(value) && value && value > 0 ? value : fallback
 }
 
-function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, season: number, episode: number) {
-  const encodedId = encodeURIComponent(String(tmdbId))
-
+function buildEmbedUrl(
+  type: TmdbWatchPlayerProps["type"],
+  tmdbId: number,
+  season: number,
+  episode: number,
+  imdbId?: string | null,
+) {
   if (type === "movie") {
-    return `https://vsembed.ru/embed/movie/${encodedId}`
+    // vsembed's movie endpoint expects an IMDb id; fall back to the TMDb id if unavailable.
+    const movieId = encodeURIComponent(imdbId?.trim() || String(tmdbId))
+    return `https://vsembed.ru/embed/movie/${movieId}`
   }
 
+  const encodedId = encodeURIComponent(String(tmdbId))
   return `https://vsembed.ru/embed/tv/${encodedId}/${season}/${episode}`
 }
 
-export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
+export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
   const [season, setSeason] = useState(positiveInteger(initialSeason, 1))
   const [episode, setEpisode] = useState(positiveInteger(initialEpisode, 1))
   const [drawerOpen, setDrawerOpen] = useState(false)
   const playerRef = useRef<HTMLDivElement>(null)
-  const embedUrl = useMemo(() => buildEmbedUrl(type, tmdbId, season, episode), [type, tmdbId, season, episode])
+  const embedUrl = useMemo(() => buildEmbedUrl(type, tmdbId, season, episode, imdbId), [type, tmdbId, season, episode, imdbId])
 
   function selectEpisode(nextSeason: number, nextEpisode: number) {
     setSeason(positiveInteger(nextSeason, 1))
@@ -67,7 +75,6 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
           allowFullScreen
           loading="eager"
           referrerPolicy="strict-origin-when-cross-origin"
-          sandbox="allow-forms allow-modals allow-orientation-lock allow-presentation allow-same-origin allow-scripts"
         />
         <Button type="button" variant="secondary" size="icon" className="absolute right-3 top-3 bg-background/90 shadow-lg backdrop-blur-sm" onClick={enterFullscreen} aria-label="Open player fullscreen">
           <Maximize />

@@ -97,6 +97,18 @@ export async function getTmdbTitle(id: number, type: "movie" | "tv") {
   return tmdbFetch<TmdbTitle & { runtime?: number; episode_run_time?: number[] }>(`/${type}/${id}?language=en-US`)
 }
 
+// vsembed's movie endpoint expects an IMDb id (e.g. tt1300854), while the app
+// only stores TMDb ids. Resolve the IMDb id so movies play; returns null on failure.
+export async function getImdbId(id: number, type: "movie" | "tv"): Promise<string | null> {
+  try {
+    const data = await tmdbFetch<{ imdb_id?: string | null }>(`/${type}/${id}/external_ids`)
+    const imdbId = data.imdb_id?.trim()
+    return imdbId && imdbId.startsWith("tt") ? imdbId : null
+  } catch {
+    return null
+  }
+}
+
 export function tmdbTitle(item: TmdbTitle) {
   return item.title ?? item.name ?? "Untitled"
 }
