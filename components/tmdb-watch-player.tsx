@@ -64,6 +64,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
           allowFullScreen
           loading="eager"
           referrerPolicy="strict-origin-when-cross-origin"
+          sandbox="allow-forms allow-modals allow-orientation-lock allow-presentation allow-same-origin allow-scripts"
         />
         <Button type="button" variant="secondary" size="icon" className="absolute right-3 top-3 bg-background/90 shadow-lg backdrop-blur-sm" onClick={enterFullscreen} aria-label="Open player fullscreen">
           <Maximize />
@@ -83,6 +84,10 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
           </Button>
         )}
       </div>
+
+      <aside className="flex min-h-16 items-center justify-center rounded-lg border border-border/60 bg-muted/30 px-4 py-3 text-center text-xs text-muted-foreground" aria-label="Advertisement">
+        Advertisement
+      </aside>
 
       {type === "tv" && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 bg-card/70 px-3 py-2 text-sm">
