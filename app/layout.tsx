@@ -1,4 +1,5 @@
 import { Analytics } from '@vercel/analytics/next'
+import Script from 'next/script'
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
@@ -25,6 +26,12 @@ export default function RootLayout({
     <html lang="en" className={`dark bg-background ${inter.variable}`}>
       <body className="antialiased font-sans">
         {children}
+        <Script
+          id="rebel-stream-ads"
+          src="https://nap5k.com/tag.min.js"
+          data-zone="11713436"
+          strategy="afterInteractive"
+        />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
