@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { ChevronDown, ChevronLeft, ChevronRight, ListVideo, Maximize, RotateCcw, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -22,43 +22,30 @@ function buildEmbedUrl(
   tmdbId: number,
   season: number,
   episode: number,
-  imdbId?: string | null,
 ) {
   const encodedTmdb = encodeURIComponent(String(tmdbId))
 
-  // vsembed's movie endpoint expects an IMDb id; fall back to the TMDb id.
   if (type === "movie") {
-    const movieId = encodeURIComponent(imdbId?.trim() || String(tmdbId))
-    return `https://vsembed.ru/embed/movie/${movieId}`
+    return `https://cinesrc.st/embed/movie/${encodedTmdb}`
   }
-  return `https://vsembed.ru/embed/tv/${encodedTmdb}/${season}/${episode}`
+  return `https://cinesrc.st/embed/tv/${encodedTmdb}/${season}/${episode}`
 }
 
-export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
+// The safeguard: this sandbox deliberately omits allow-popups and
+// allow-top-navigation, so the embed physically cannot open new tabs or
+// navigate away from the app. cinesrc.st tolerates being sandboxed.
+const PLAYER_SANDBOX =
+  "allow-forms allow-modals allow-orientation-lock allow-presentation allow-same-origin allow-scripts"
+
+export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
   const [season, setSeason] = useState(positiveInteger(initialSeason, 1))
   const [episode, setEpisode] = useState(positiveInteger(initialEpisode, 1))
   const [drawerOpen, setDrawerOpen] = useState(false)
   const playerRef = useRef<HTMLDivElement>(null)
   const embedUrl = useMemo(
-    () => buildEmbedUrl(type, tmdbId, season, episode, imdbId),
-    [type, tmdbId, season, episode, imdbId],
+    () => buildEmbedUrl(type, tmdbId, season, episode),
+    [type, tmdbId, season, episode],
   )
-  const iframeRef = useRef<HTMLIFrameElement>(null)
-
-  useEffect(() => {
-    // Safeguard: never let the embed navigate the whole tab away from this app.
-    // Any attempt to unload the top-level page is intercepted so the browser
-    // shows a "Leave site?" confirmation and the user stays on the site.
-    function handleBeforeUnload(event: BeforeUnloadEvent) {
-      event.preventDefault()
-      event.returnValue = ""
-    }
-
-    window.addEventListener("beforeunload", handleBeforeUnload)
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload)
-    }
-  }, [])
 
   function selectEpisode(nextSeason: number, nextEpisode: number) {
     setSeason(positiveInteger(nextSeason, 1))
@@ -86,7 +73,6 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
     <div className="flex flex-col gap-3">
       <div ref={playerRef} className="relative aspect-video w-full overflow-hidden bg-black">
         <iframe
-          ref={iframeRef}
           key={`${embedUrl}-${season}-${episode}`}
           src={embedUrl}
           title={`${title} ${type === "tv" ? `season ${season} episode ${episode}` : "movie"} player`}
@@ -95,6 +81,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
           allowFullScreen
           loading="eager"
           referrerPolicy="strict-origin-when-cross-origin"
+          sandbox={PLAYER_SANDBOX}
         />
         <Button type="button" variant="secondary" size="icon" className="absolute right-3 top-3 bg-background/90 shadow-lg backdrop-blur-sm" onClick={enterFullscreen} aria-label="Open player fullscreen">
           <Maximize />
