@@ -5,7 +5,7 @@ import { ChevronDown, ChevronLeft, ChevronRight, ListVideo, Maximize, RotateCcw,
 import { Button } from "@/components/ui/button"
 
 type TmdbWatchPlayerProps = {
-  type: "movie" | "tv"
+  type: "movie" | "tv" | "anime"
   tmdbId: number
   title: string
   imdbId?: string | null
@@ -26,9 +26,12 @@ function buildEmbedUrl(
   const encodedTmdb = encodeURIComponent(String(tmdbId))
 
   if (type === "movie") {
-    return `https://cinesrc.st/embed/movie/${encodedTmdb}`
+    return `https://embed.filmu.in/movie/${encodedTmdb}`
   }
-  return `https://cinesrc.st/embed/tv/${encodedTmdb}/${season}/${episode}`
+  if (type === "anime") {
+    return `https://embed.filmu.in/anime/${encodedTmdb}/${season}/${episode}`
+  }
+  return `https://embed.filmu.in/tv/${encodedTmdb}/${season}/${episode}`
 }
 
 // The safeguard: this sandbox deliberately omits allow-popups and
@@ -63,7 +66,8 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
     if (!element) return
     await element.requestFullscreen?.()
     try {
-      await screen.orientation?.lock("landscape")
+      const orientation = screen.orientation as ScreenOrientation & { lock?: (orientation: string) => Promise<void> }
+      await orientation.lock?.("landscape")
     } catch {
       // Orientation locking is unavailable in some mobile browsers.
     }
@@ -75,7 +79,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
         <iframe
           key={`${embedUrl}-${season}-${episode}`}
           src={embedUrl}
-          title={`${title} ${type === "tv" ? `season ${season} episode ${episode}` : "movie"} player`}
+          title={`${title} ${type === "movie" ? "movie" : `season ${season} episode ${episode}`} player`}
           className="absolute inset-0 size-full border-0"
           allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
           allowFullScreen
@@ -86,7 +90,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
         <Button type="button" variant="secondary" size="icon" className="absolute right-3 top-3 bg-background/90 shadow-lg backdrop-blur-sm" onClick={enterFullscreen} aria-label="Open player fullscreen">
           <Maximize />
         </Button>
-        {type === "tv" && (
+        {type !== "movie" && (
           <Button
             type="button"
             variant="secondary"
@@ -106,7 +110,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
         <span>Advertisement</span>
       </aside>
 
-      {type === "tv" && (
+      {type !== "movie" && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 bg-card/70 px-3 py-2 text-sm">
           <span className="font-medium">Season {season} · Episode {episode}</span>
           <div className="flex items-center gap-2">

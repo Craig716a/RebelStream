@@ -19,12 +19,12 @@ function positiveInteger(value: string | undefined, fallback?: number) {
 
 export default async function TmdbWatchPage({ params, searchParams }: WatchPageProps) {
   const [{ type, id: rawId }, query] = await Promise.all([params, searchParams])
-  if (type !== "movie" && type !== "tv") notFound()
+  if (type !== "movie" && type !== "tv" && type !== "anime") notFound()
 
   const id = positiveInteger(rawId)
   if (!id) notFound()
 
-  const title = await getTmdbTitle(id, type)
+  const title = await getTmdbTitle(id, type === "movie" ? "movie" : "tv")
   const name = tmdbTitle(title)
   const runtime = title.runtime ?? title.episode_run_time?.[0]
   const season = positiveInteger(query.season, 1)
@@ -43,7 +43,7 @@ export default async function TmdbWatchPage({ params, searchParams }: WatchPageP
           <MovieWatchPlayer type={type} tmdbId={id} title={name} imdbId={imdbId} initialSeason={season} initialEpisode={episode} />
           <div className="flex items-center gap-3 border-t border-border/60 px-4 py-3 text-xs text-muted-foreground md:px-5">
             <Clapperboard className="size-4" aria-hidden="true" />
-            <span>{type === "tv" ? "Series player" : "Movie player"}</span>
+            <span>{type === "movie" ? "Movie player" : type === "anime" ? "Anime player" : "Series player"}</span>
             <span className="ml-auto">Filmu player</span>
           </div>
         </section>
@@ -54,7 +54,7 @@ export default async function TmdbWatchPage({ params, searchParams }: WatchPageP
           )}
           <div className="flex flex-col gap-2">
             <p className="text-sm text-muted-foreground">
-              {type === "tv" ? `Series · S${season} E${episode}` : "Movie"}{runtime ? ` · ${runtime} min` : ""}
+              {type === "movie" ? "Movie" : type === "anime" ? `Anime · S${season} E${episode}` : `Series · S${season} E${episode}`}{runtime ? ` · ${runtime} min` : ""}
             </p>
             <h1 id="watch-title" className="text-balance text-3xl font-bold tracking-tight md:text-4xl">{name}</h1>
             <p className="max-w-3xl text-pretty leading-relaxed text-foreground/75">{title.overview || "No synopsis available."}</p>
