@@ -33,33 +33,41 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
   useEffect(() => {
     const zone = "11713436"
     const maxAds = 5
+    const intervalMs = 2 * 60 * 1000
     const windowMs = 10 * 60 * 1000
     const adKey = `rebel-stream-ad-count-${zone}`
     const resetKey = `rebel-stream-ad-reset-${zone}`
-    const now = Date.now()
-    let count = Number.parseInt(window.localStorage.getItem(adKey) ?? "0", 10)
-    let resetAt = Number.parseInt(window.localStorage.getItem(resetKey) ?? "0", 10)
+    let activeScript: HTMLScriptElement | null = null
 
-    if (!Number.isFinite(count) || !Number.isFinite(resetAt) || now >= resetAt) {
-      count = 0
-      resetAt = now + windowMs
-      window.localStorage.setItem(adKey, "0")
-      window.localStorage.setItem(resetKey, String(resetAt))
+    const loadNextAd = () => {
+      const now = Date.now()
+      let count = Number.parseInt(window.localStorage.getItem(adKey) ?? "0", 10)
+      let resetAt = Number.parseInt(window.localStorage.getItem(resetKey) ?? "0", 10)
+
+      if (!Number.isFinite(count) || !Number.isFinite(resetAt) || now >= resetAt) {
+        count = 0
+        resetAt = now + windowMs
+        window.localStorage.setItem(adKey, "0")
+        window.localStorage.setItem(resetKey, String(resetAt))
+      }
+
+      if (count >= maxAds || activeScript) return
+
+      activeScript = document.createElement("script")
+      activeScript.id = `rebel-stream-ad-${zone}-${count + 1}`
+      activeScript.dataset.zone = zone
+      activeScript.dataset.sequence = String(count + 1)
+      activeScript.src = "https://nap5k.com/tag.min.js"
+      activeScript.async = true
+      document.body.appendChild(activeScript)
+      window.localStorage.setItem(adKey, String(count + 1))
     }
 
-    if (count >= maxAds) return
-
-    const script = document.createElement("script")
-    script.id = `rebel-stream-ad-${zone}-${count + 1}-${now}`
-    script.dataset.zone = zone
-    script.dataset.sequence = String(count + 1)
-    script.src = "https://nap5k.com/tag.min.js"
-    script.async = true
-    document.body.appendChild(script)
-    window.localStorage.setItem(adKey, String(count + 1))
-
+    // Do not inject an ad on mount. Deliver exactly one script every two minutes.
+    const timer = window.setInterval(loadNextAd, intervalMs)
     return () => {
-      script.remove()
+      window.clearInterval(timer)
+      activeScript?.remove()
     }
   }, [])
 
