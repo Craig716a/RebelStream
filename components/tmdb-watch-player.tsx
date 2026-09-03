@@ -62,7 +62,6 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
           className="absolute inset-0 size-full border-0"
           allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
           allowFullScreen
-          sandbox="allow-forms allow-presentation allow-same-origin allow-scripts"
           loading="eager"
           referrerPolicy="strict-origin-when-cross-origin"
         />
