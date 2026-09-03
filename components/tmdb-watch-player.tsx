@@ -29,7 +29,7 @@ function buildEmbedUrl(
   if (type === "movie") {
     return `https://cinesrc.st/embed/movie/${encodedTmdb}`
   }
-  return `https://cinesrc.st/embed/tv/${encodedTmdb}/${season}/${episode}`
+  return `https://cinesrc.st/embed/tv/${encodedTmdb}?s=${season}&e=${episode}`
 }
 
 
