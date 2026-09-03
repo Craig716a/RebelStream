@@ -16,18 +16,9 @@ function positiveInteger(value: number | undefined, fallback: number) {
   return Number.isInteger(value) && value && value > 0 ? value : fallback
 }
 
-function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, season: number, episode: number) {
+function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, _season: number, _episode: number) {
   const mediaPath = type === "movie" ? "movie" : "tv"
-  const baseUrl = `https://cinesrc.st/embed/${mediaPath}/${encodeURIComponent(String(tmdbId))}`
-
-  // Keep the provider's TMDb-ID format while passing the selected TV episode
-  // as query parameters. Changing this URL forces the iframe to load the new
-  // episode instead of leaving the previous document mounted.
-  if (type === "tv") {
-    return `${baseUrl}?season=${season}&episode=${episode}`
-  }
-
-  return baseUrl
+  return `https://cinesrc.st/embed/${mediaPath}/${encodeURIComponent(String(tmdbId))}`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
@@ -45,6 +36,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
 
   function nextEpisode() {
     setEpisode((current) => current + 1)
+    setDrawerOpen(false)
   }
 
   async function enterFullscreen() {
@@ -62,7 +54,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
     <div className="flex flex-col gap-3">
       <div ref={playerRef} className="relative aspect-video w-full overflow-hidden bg-black">
         <iframe
-          key={embedUrl}
+          key={`${embedUrl}-${season}-${episode}`}
           src={embedUrl}
           title={`${title} ${type === "tv" ? `season ${season} episode ${episode}` : "movie"} player`}
           className="absolute inset-0 size-full border-0"
