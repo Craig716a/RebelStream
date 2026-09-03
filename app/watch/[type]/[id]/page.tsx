@@ -30,6 +30,7 @@ export default async function TmdbWatchPage({ params, searchParams }: WatchPageP
   const season = positiveInteger(query.season, 1)
   const episode = positiveInteger(query.episode, 1)
   const imdbId = type === "movie" ? await getImdbId(id, "movie") : null
+  const episodeCounts = type === "movie" ? {} : Object.fromEntries((title.seasons ?? []).filter((item) => item.season_number > 0 && item.episode_count > 0).map((item) => [item.season_number, item.episode_count]))
 
   return (
     <main className="min-h-screen bg-background">
@@ -40,7 +41,7 @@ export default async function TmdbWatchPage({ params, searchParams }: WatchPageP
         </Button>
 
         <section className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-2xl" aria-label={`${name} video player`}>
-          <MovieWatchPlayer type={type} tmdbId={id} title={name} imdbId={imdbId} initialSeason={season} initialEpisode={episode} />
+          <MovieWatchPlayer type={type} tmdbId={id} title={name} imdbId={imdbId} initialSeason={season} initialEpisode={episode} episodeCounts={episodeCounts} />
           <div className="flex items-center gap-3 border-t border-border/60 px-4 py-3 text-xs text-muted-foreground md:px-5">
             <Clapperboard className="size-4" aria-hidden="true" />
             <span>{type === "movie" ? "Movie player" : type === "anime" ? "Anime player" : "Series player"}</span>
