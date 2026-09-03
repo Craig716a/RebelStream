@@ -18,10 +18,10 @@ function positiveInteger(value: number | undefined, fallback: number) {
 
 function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, season: number, episode: number) {
   if (type === "movie") {
-    return `https://vidsrc.sbs/embed/movie/${tmdbId}`
+    return `https://cinesrc.st/embed/movie/${tmdbId}`
   }
 
-  return `https://vidsrc.sbs/embed/tv/${tmdbId}/${season}/${episode}`
+  return `https://cinesrc.st/embed/tv/${tmdbId}`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
