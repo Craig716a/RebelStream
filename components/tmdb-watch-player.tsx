@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { ChevronDown, ChevronLeft, ChevronRight, ListVideo, Maximize, RotateCcw, ShieldAlert, ShieldCheck, X } from "lucide-react"
+import { ChevronDown, ChevronLeft, ChevronRight, ListVideo, Maximize, RotateCcw, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 type TmdbWatchPlayerProps = {
@@ -17,14 +17,7 @@ function positiveInteger(value: number | undefined, fallback: number) {
   return Number.isInteger(value) && value && value > 0 ? value : fallback
 }
 
-type EmbedSource = "cinesrc" | "vsembed"
-
-// cinesrc.st tolerates being sandboxed, so it's the default: the sandbox
-// attribute (without allow-popups / allow-top-navigation) fully blocks
-// ad-driven pop-ups and redirects. vsembed refuses to run sandboxed, so it's
-// the unprotected fallback for titles that don't load on cinesrc.
 function buildEmbedUrl(
-  source: EmbedSource,
   type: TmdbWatchPlayerProps["type"],
   tmdbId: number,
   season: number,
@@ -33,14 +26,7 @@ function buildEmbedUrl(
 ) {
   const encodedTmdb = encodeURIComponent(String(tmdbId))
 
-  if (source === "cinesrc") {
-    if (type === "movie") {
-      return `https://cinesrc.st/embed/movie/${encodedTmdb}`
-    }
-    return `https://cinesrc.st/embed/tv/${encodedTmdb}/${season}/${episode}`
-  }
-
-  // vsembed fallback: movie endpoint expects an IMDb id, fall back to TMDb id.
+  // vsembed's movie endpoint expects an IMDb id; fall back to the TMDb id.
   if (type === "movie") {
     const movieId = encodeURIComponent(imdbId?.trim() || String(tmdbId))
     return `https://vsembed.ru/embed/movie/${movieId}`
@@ -48,20 +34,14 @@ function buildEmbedUrl(
   return `https://vsembed.ru/embed/tv/${encodedTmdb}/${season}/${episode}`
 }
 
-// The exact sandbox that blocked redirects/pop-ups before. It deliberately
-// omits allow-popups and allow-top-navigation so the embed can't leave the site.
-const SANDBOX_ATTR =
-  "allow-forms allow-modals allow-orientation-lock allow-presentation allow-same-origin allow-scripts"
-
 export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
   const [season, setSeason] = useState(positiveInteger(initialSeason, 1))
   const [episode, setEpisode] = useState(positiveInteger(initialEpisode, 1))
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [source, setSource] = useState<EmbedSource>("cinesrc")
   const playerRef = useRef<HTMLDivElement>(null)
   const embedUrl = useMemo(
-    () => buildEmbedUrl(source, type, tmdbId, season, episode, imdbId),
-    [source, type, tmdbId, season, episode, imdbId],
+    () => buildEmbedUrl(type, tmdbId, season, episode, imdbId),
+    [type, tmdbId, season, episode, imdbId],
   )
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const playerFocusedRef = useRef(false)
@@ -164,7 +144,6 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
           allowFullScreen
           loading="eager"
           referrerPolicy="strict-origin-when-cross-origin"
-          sandbox={source === "cinesrc" ? SANDBOX_ATTR : undefined}
         />
         <Button type="button" variant="secondary" size="icon" className="absolute right-3 top-3 bg-background/90 shadow-lg backdrop-blur-sm" onClick={enterFullscreen} aria-label="Open player fullscreen">
           <Maximize />
@@ -183,35 +162,6 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
             Episodes
           </Button>
         )}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-card/70 px-3 py-2">
-        <span className="mr-1 text-xs font-medium text-muted-foreground">Player</span>
-        <Button
-          type="button"
-          size="sm"
-          variant={source === "cinesrc" ? "default" : "outline"}
-          className="gap-2"
-          onClick={() => setSource("cinesrc")}
-          aria-pressed={source === "cinesrc"}
-        >
-          <ShieldCheck data-icon="inline-start" />
-          Ad-safe
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant={source === "vsembed" ? "default" : "outline"}
-          className="gap-2"
-          onClick={() => setSource("vsembed")}
-          aria-pressed={source === "vsembed"}
-        >
-          <ShieldAlert data-icon="inline-start" />
-          Backup
-        </Button>
-        <span className="ml-auto text-xs text-muted-foreground">
-          {source === "cinesrc" ? "Blocks pop-ups & redirects" : "No ad protection — use if a title won't load"}
-        </span>
       </div>
 
       <aside className="flex min-h-16 items-center justify-center rounded-lg border border-border/60 bg-muted/30 px-4 py-3 text-center text-xs text-muted-foreground" aria-label="Advertisement">
