@@ -28,7 +28,8 @@ function buildEmbedUrl(
   if (type === "movie") {
     return `https://cinesrc.st/embed/movie/${encodedTmdb}`
   }
-  return `https://cinesrc.st/embed/tv/${encodedTmdb}/${season}/${episode}`
+  // cinesrc expects season/episode as query params, not path segments.
+  return `https://cinesrc.st/embed/tv/${encodedTmdb}?season=${season}&episode=${episode}`
 }
 
 // The safeguard: this sandbox deliberately omits allow-popups and
