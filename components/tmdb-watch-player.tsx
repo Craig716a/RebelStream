@@ -18,7 +18,7 @@ function positiveInteger(value: number | undefined, fallback: number) {
 
 function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, season: number, episode: number) {
   if (type === "movie") {
-    return `https://embed.su/embed/movie/${tmdbId}`
+    return `https://novahd.cc/watch/m/${tmdbId}`
   }
 
   return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`
