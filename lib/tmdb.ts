@@ -46,8 +46,19 @@ export async function getTmdbGenres(type: "movie" | "tv" = "movie") {
   return data.genres
 }
 
+export async function getTmdbPopular(limit = 8) {
+  const [movies, shows] = await Promise.all([
+    tmdbFetch<{ results: TmdbTitle[] }>(`/movie/popular?language=en-US&page=1`),
+    tmdbFetch<{ results: TmdbTitle[] }>(`/tv/popular?language=en-US&page=1`),
+  ])
+  return [
+    ...movies.results.map((item) => ({ ...item, media_type: "movie" as const })),
+    ...shows.results.map((item) => ({ ...item, media_type: "tv" as const })),
+  ].sort((a, b) => b.vote_average - a.vote_average).slice(0, limit)
+}
+
 export async function getTmdbCatalog(page = 1) {
-  const data = await tmdbFetch<{ results: TmdbTitle[]; page?: number; total_pages?: number; total_results?: number }>(`/trending/all/week?language=en-US&page=${page}`)
+  const data = await tmdbFetch<{ results: TmdbTitle[]; page?: number; total_pages?: number; total_results?: number }>(`/trending/all/week?language=en-US&page=${page}`
   const items = data.results.filter((item) => item.media_type === "movie" || item.media_type === "tv")
   return { items, page: data.page ?? page, total_pages: data.total_pages ?? 1, total_results: data.total_results ?? items.length }
 }

@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 import type { Movie } from "@/lib/db/schema"
 import { getCategories, getFeaturedMovie, getMoviesByCategory, getPopularMovies } from "@/app/actions/movies"
+import { getTmdbPopular } from "@/lib/tmdb"
 import { SiteHeader } from "@/components/site-header"
 import { Hero } from "@/components/hero"
 import { MovieRow } from "@/components/movie-row"
