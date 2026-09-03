@@ -16,12 +16,11 @@ function positiveInteger(value: number | undefined, fallback: number) {
   return Number.isInteger(value) && value && value > 0 ? value : fallback
 }
 
-function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, season: number, episode: number) {
-  if (type === "movie") {
-    return `https://cinesrc.st/embed/movie/${tmdbId}`
-  }
-
-  return `https://cinesrc.st/embed/tv/${tmdbId}`
+function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, _season: number, _episode: number) {
+  // CineSRC accepts the TMDb ID directly. Do not append a title, slug, or
+  // season/episode segment to these catalog embed URLs.
+  const mediaPath = type === "movie" ? "movie" : "tv"
+  return `https://cinesrc.st/embed/${mediaPath}/${encodeURIComponent(String(tmdbId))}`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
