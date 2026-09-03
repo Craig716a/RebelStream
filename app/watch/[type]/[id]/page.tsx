@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft, Clapperboard } from "lucide-react"
-import { getTmdbTitle, tmdbImage, tmdbTitle } from "@/lib/tmdb"
+import { getImdbId, getTmdbTitle, tmdbImage, tmdbTitle } from "@/lib/tmdb"
 import { Button } from "@/components/ui/button"
 import { MovieWatchPlayer } from "@/components/tmdb-watch-player"
 
@@ -29,6 +29,7 @@ export default async function TmdbWatchPage({ params, searchParams }: WatchPageP
   const runtime = title.runtime ?? title.episode_run_time?.[0]
   const season = positiveInteger(query.season, 1)
   const episode = positiveInteger(query.episode, 1)
+  const imdbId = type === "movie" ? await getImdbId(id, "movie") : null
 
   return (
     <main className="min-h-screen bg-background">
@@ -39,7 +40,7 @@ export default async function TmdbWatchPage({ params, searchParams }: WatchPageP
         </Button>
 
         <section className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-2xl" aria-label={`${name} video player`}>
-          <MovieWatchPlayer type={type} tmdbId={id} title={name} initialSeason={season} initialEpisode={episode} />
+          <MovieWatchPlayer type={type} tmdbId={id} title={name} imdbId={imdbId} initialSeason={season} initialEpisode={episode} />
           <div className="flex items-center gap-3 border-t border-border/60 px-4 py-3 text-xs text-muted-foreground md:px-5">
             <Clapperboard className="size-4" aria-hidden="true" />
             <span>{type === "tv" ? "Series player" : "Movie player"}</span>
