@@ -20,10 +20,10 @@ function buildEmbedUrl(type: TmdbWatchPlayerProps["type"], tmdbId: number, seaso
   const encodedId = encodeURIComponent(String(tmdbId))
 
   if (type === "movie") {
-    return `https://cinesrc.st/embed/movie/${encodedId}`
+    return `https://vsembed.ru/embed/movie/${encodedId}`
   }
 
-  return `https://cinesrc.st/embed/tv/${encodedId}?s=${season}&e=${episode}`
+  return `https://vsembed.ru/embed/tv/${encodedId}/${season}/${episode}`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode }: TmdbWatchPlayerProps) {
