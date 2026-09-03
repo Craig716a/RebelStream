@@ -44,68 +44,19 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
     [type, tmdbId, season, episode, imdbId],
   )
   const iframeRef = useRef<HTMLIFrameElement>(null)
-  const playerFocusedRef = useRef(false)
 
   useEffect(() => {
-    // The vsembed provider refuses to load inside a sandboxed iframe, so we
-    // can't use the sandbox attribute to block pop-ups/redirects. Instead we
-    // harden the top-level window as much as the browser permits.
-    const isPlayerActive = () => document.activeElement === iframeRef.current
-
-    // 1) Block scripted window.open() pop-ups/pop-unders. Ads open a blank/
-    //    third-party window; we neutralise those while the player is focused
-    //    but keep genuine in-site opens (e.g. same-origin links) working.
-    const nativeOpen = window.open.bind(window)
-    window.open = function patchedOpen(url?: string | URL, target?: string, features?: string) {
-      const href = typeof url === "string" ? url : url?.toString() ?? ""
-      const sameOrigin = href.startsWith("/") || href.startsWith(window.location.origin) || href === ""
-      if ((playerFocusedRef.current || isPlayerActive()) && !sameOrigin) {
-        // Swallow the pop-up and keep focus on our page.
-        window.setTimeout(() => window.focus(), 0)
-        return null
-      }
-      return nativeOpen(url as string, target, features)
-    } as typeof window.open
-
-    // 2) Confirm before any top-level navigation that fires while the player is
-    //    focused (ad redirects of the whole tab).
+    // Safeguard: never let the embed navigate the whole tab away from this app.
+    // Any attempt to unload the top-level page is intercepted so the browser
+    // shows a "Leave site?" confirmation and the user stays on the site.
     function handleBeforeUnload(event: BeforeUnloadEvent) {
-      if (!playerFocusedRef.current && !isPlayerActive()) return
       event.preventDefault()
       event.returnValue = ""
     }
 
-    // 3) Track focus. When focus jumps into the iframe, arm the guard and pull
-    //    focus back if a pop-under stole it.
-    function handleBlur() {
-      if (isPlayerActive()) {
-        playerFocusedRef.current = true
-        window.setTimeout(() => window.focus(), 0)
-      }
-    }
-
-    function handleFocus() {
-      playerFocusedRef.current = false
-    }
-
-    // 4) If the tab is hidden right after the player was interacted with, a
-    //    pop-under likely opened behind it; bring our tab back to the front.
-    function handleVisibility() {
-      if (document.visibilityState === "hidden" && playerFocusedRef.current) {
-        window.setTimeout(() => window.focus(), 0)
-      }
-    }
-
     window.addEventListener("beforeunload", handleBeforeUnload)
-    window.addEventListener("blur", handleBlur)
-    window.addEventListener("focus", handleFocus)
-    document.addEventListener("visibilitychange", handleVisibility)
     return () => {
-      window.open = nativeOpen
       window.removeEventListener("beforeunload", handleBeforeUnload)
-      window.removeEventListener("blur", handleBlur)
-      window.removeEventListener("focus", handleFocus)
-      document.removeEventListener("visibilitychange", handleVisibility)
     }
   }, [])
 
