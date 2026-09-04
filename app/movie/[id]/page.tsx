@@ -5,7 +5,7 @@ import { ArrowLeft, Play } from "lucide-react"
 import { getCategories, getMovieById, getSeriesEpisodes } from "@/app/actions/movies"
 import { EpisodeList } from "@/components/episode-list"
 import { SiteHeader } from "@/components/site-header"
-import { VideoPlayer } from "@/components/video-player"
+import { MovieWatchPlayer } from "@/components/tmdb-watch-player"
 import { LikeButton } from "@/components/like-button"
 import { ShareButton } from "@/components/share-button"
 import { Button } from "@/components/ui/button"
@@ -67,11 +67,13 @@ export default async function MoviePage({
               <ArrowLeft className="h-4 w-4" /> Back
             </Button>
           </div>
-          <VideoPlayer
-            url={selected?.episode.videoUrl ?? movie.videoUrl}
-            movieId={movie.id}
+          <MovieWatchPlayer
+            type={movie.isSeries ? "tv" : "movie"}
+            tmdbId={Number(movie.tmdbId ?? movie.id)}
             title={selected ? `${movie.title} — S${selected.season.seasonNumber} E${selected.episode.episodeNumber}: ${selected.episode.title}` : movie.title}
-            nextEpisode={seriesRows[selectedIndex + 1] ? { id: seriesRows[selectedIndex + 1].episode.id, href: `/movie/${movie.id}?play=1&episode=${seriesRows[selectedIndex + 1].episode.id}` } : undefined}
+            initialSeason={selected?.season.seasonNumber}
+            initialEpisode={selected?.episode.episodeNumber}
+            episodeCounts={Object.fromEntries(seriesRows.map((row) => [row.season.seasonNumber, Math.max(...seriesRows.filter((item) => item.season.seasonNumber === row.season.seasonNumber).map((item) => item.episode.episodeNumber))]))}
           />
         </div>
       ) : (
