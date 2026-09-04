@@ -39,7 +39,6 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
   const [season, setSeason] = useState(positiveInteger(initialSeason, 1))
   const [episode, setEpisode] = useState(positiveInteger(initialEpisode, 1))
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [adVisible, setAdVisible] = useState(true)
   const playerRef = useRef<HTMLDivElement>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const embedUrl = useMemo(
@@ -60,11 +59,6 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
     setEpisode((current) => current + 1)
     setDrawerOpen(false)
   }
-
-  useEffect(() => {
-    const interval = window.setInterval(() => setAdVisible(true), 60_000)
-    return () => window.clearInterval(interval)
-  }, [])
 
   useEffect(() => {
     const iframe = iframeRef.current
@@ -128,16 +122,6 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
           referrerPolicy="no-referrer"
           ref={iframeRef}
         />
-        {adVisible && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/45 p-4 backdrop-blur-[2px]" role="dialog" aria-label="Advertisement">
-            <div className="relative flex min-h-32 w-full max-w-md items-center justify-center rounded-lg border border-border bg-card px-6 py-8 text-center shadow-2xl">
-              <span className="text-sm text-muted-foreground">Advertisement</span>
-              <Button type="button" variant="ghost" size="icon" className="absolute right-2 top-2" onClick={() => setAdVisible(false)} aria-label="Close advertisement">
-                <X />
-              </Button>
-            </div>
-          </div>
-        )}
         <Button type="button" variant="secondary" size="icon" className="absolute right-3 top-3 z-30 bg-background/90 shadow-lg backdrop-blur-sm" onClick={enterFullscreen} aria-label="Open player fullscreen">
           <Maximize />
         </Button>
