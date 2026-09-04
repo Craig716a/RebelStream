@@ -23,13 +23,15 @@ function buildEmbedUrl(
   tmdbId: number,
   season: number,
   episode: number,
+  imdbId?: string | null,
 ) {
   const encodedTmdb = encodeURIComponent(String(tmdbId))
 
   if (type === "movie") {
-    return `https://cinesrc.st/embed/movie/${encodedTmdb}`
+    const movieId = imdbId?.trim() || `tmdb-${encodedTmdb}`
+    return `https://vsembed.ru/embed/movie/${encodeURIComponent(movieId)}`
   }
-  return `https://cinesrc.st/embed/tv/${encodedTmdb}?s=${season}&e=${episode}`
+  return `https://vsembed.ru/embed/tv/${encodedTmdb}/${season}/${episode}`
 }
 
 
@@ -41,8 +43,8 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
   const playerRef = useRef<HTMLDivElement>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const embedUrl = useMemo(
-    () => buildEmbedUrl(type, tmdbId, season, episode),
-    [type, tmdbId, season, episode],
+    () => buildEmbedUrl(type, tmdbId, season, episode, imdbId),
+    [type, tmdbId, season, episode, imdbId],
   )
 
   function advanceAfterEpisode() {
@@ -68,7 +70,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
     const iframe = iframeRef.current
     if (!iframe) return
     const requestPlayback = () => {
-      iframe.contentWindow?.postMessage({ type: "play", action: "play", autoplay: true }, "https://cinesrc.st")
+      iframe.contentWindow?.postMessage({ type: "play", action: "play", autoplay: true }, "https://vsembed.ru")
     }
     const handleLoad = () => {
       requestPlayback()
@@ -82,7 +84,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
   useEffect(() => {
     if (type === "movie") return
     function handlePlayerMessage(event: MessageEvent) {
-      if (event.origin !== "https://cinesrc.st") return
+      if (event.origin !== "https://vsembed.ru") return
       const data = typeof event.data === "string" ? event.data.toLowerCase() : event.data?.type?.toString().toLowerCase()
       if (data === "ended" || data === "episodeended" || data === "videoended" ) advanceAfterEpisode()
     }

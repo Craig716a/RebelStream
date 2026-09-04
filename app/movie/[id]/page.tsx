@@ -6,6 +6,7 @@ import { getCategories, getMovieById, getSeriesEpisodes } from "@/app/actions/mo
 import { EpisodeList } from "@/components/episode-list"
 import { SiteHeader } from "@/components/site-header"
 import { MovieWatchPlayer } from "@/components/tmdb-watch-player"
+import { getImdbId } from "@/lib/tmdb"
 import { LikeButton } from "@/components/like-button"
 import { ShareButton } from "@/components/share-button"
 import { Button } from "@/components/ui/button"
@@ -46,6 +47,7 @@ export default async function MoviePage({
 
   const categories = await getCategories()
   const seriesRows = movie.isSeries ? await getSeriesEpisodes(movie.id) : []
+  const imdbId = !movie.isSeries && movie.tmdbId ? await getImdbId(Number(movie.tmdbId), "movie") : null
   const selectedIndex = episode ? Math.max(0, seriesRows.findIndex((row) => row.episode.id === Number(episode))) : 0
   const selected = seriesRows[selectedIndex]
   const isPlaying = play === "1"
@@ -70,6 +72,7 @@ export default async function MoviePage({
           <MovieWatchPlayer
             type={movie.isSeries ? "tv" : "movie"}
             tmdbId={Number(movie.tmdbId ?? movie.id)}
+            imdbId={imdbId}
             title={selected ? `${movie.title} — S${selected.season.seasonNumber} E${selected.episode.episodeNumber}: ${selected.episode.title}` : movie.title}
             initialSeason={selected?.season.seasonNumber}
             initialEpisode={selected?.episode.episodeNumber}
