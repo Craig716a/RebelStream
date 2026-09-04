@@ -29,7 +29,7 @@ export default function RootLayout({
       <body className="antialiased font-sans">
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(s){s.dataset.zone='11713436',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))` ,
+            __html: `(function(){var w=window,k='__rebelStreamAdTimer',z='11713436',u='https://nap5k.com/tag.min.js';if(w[k])return;function load(){if(document.querySelector('script[data-rebel-stream-ad="'+z+'"]'))return;var s=document.createElement('script');s.dataset.rebelStreamAd=z;s.dataset.zone=z;s.src=u;s.async=true;document.body.appendChild(s)}w[k]=window.setInterval(load,60000)})()`,
           }}
         />
         {children}
