@@ -29,9 +29,20 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
   const [season, setSeason] = useState(positiveInteger(initialSeason, 1))
   const [episode, setEpisode] = useState(positiveInteger(initialEpisode, 1))
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [useFallback, setUseFallback] = useState(false)
   const playerRef = useRef<HTMLDivElement>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const embedUrl = useMemo(() => buildEmbedUrl({ type, tmdbId, imdbId, season, episode }), [type, tmdbId, imdbId, season, episode])
+  const fallbackUrl = type === "movie"
+    ? `https://cinesrc.st/embed/movie/${encodeURIComponent(imdbId?.trim() || `tmdb-${tmdbId}`)}`
+    : `https://cinesrc.st/embed/tv/${tmdbId}?s=${season}&e=${episode}`
+  const activeUrl = useFallback ? fallbackUrl : embedUrl
+
+  useEffect(() => {
+    setUseFallback(false)
+    const timer = window.setTimeout(() => setUseFallback(true), 5000)
+    return () => window.clearTimeout(timer)
+  }, [embedUrl])
 
   function selectEpisode(nextSeason: number, nextEpisode: number) {
     setSeason(positiveInteger(nextSeason, 1))
@@ -81,7 +92,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
         <iframe
           key={`${embedUrl}-${season}-${episode}`}
           ref={iframeRef}
-          src={embedUrl}
+          src={activeUrl}
           title={`${title} ${type === "movie" ? "movie" : `season ${season} episode ${episode}`} player`}
           className="absolute inset-0 size-full border-0"
           allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
