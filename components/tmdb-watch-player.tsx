@@ -76,8 +76,8 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3">
-      <div ref={playerRef} className="relative min-h-0 flex-1 w-full overflow-hidden bg-black">
+    <div className="flex w-full flex-col gap-3">
+      <div ref={playerRef} className="relative aspect-video min-h-[240px] w-full overflow-hidden bg-black">
         <iframe
           key={`${embedUrl}-${season}-${episode}`}
           ref={iframeRef}
