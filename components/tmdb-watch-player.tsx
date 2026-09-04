@@ -20,9 +20,9 @@ function positiveInteger(value: number | undefined, fallback: number) {
 
 function buildEmbedUrl({ type, tmdbId, imdbId, season, episode }: TmdbWatchPlayerProps & { season: number; episode: number }) {
   if (type === "movie") {
-    return `https://cinesrc.st/embed/movie/${encodeURIComponent(imdbId?.trim() || `tmdb-${tmdbId}`)}`
+    return `https://vsembed.ru/embed/movie?tmdb=${encodeURIComponent(String(tmdbId))}`
   }
-  return `https://cinesrc.st/embed/tv/${tmdbId}?s=${season}&e=${episode}`
+  return `https://vsembed.ru/embed/tv?tmdb=${encodeURIComponent(String(tmdbId))}&season=${season}&episode=${episode}`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, initialEpisode, episodeCounts = {} }: TmdbWatchPlayerProps) {
