@@ -38,6 +38,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
   const [episode, setEpisode] = useState(positiveInteger(initialEpisode, 1))
   const [drawerOpen, setDrawerOpen] = useState(false)
   const playerRef = useRef<HTMLDivElement>(null)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
   const embedUrl = useMemo(
     () => buildEmbedUrl(type, tmdbId, season, episode),
     [type, tmdbId, season, episode],
@@ -56,6 +57,21 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
     setEpisode((current) => current + 1)
     setDrawerOpen(false)
   }
+
+  useEffect(() => {
+    const iframe = iframeRef.current
+    if (!iframe) return
+    const requestPlayback = () => {
+      iframe.contentWindow?.postMessage({ type: "play", action: "play", autoplay: true }, "https://cinesrc.st")
+    }
+    const handleLoad = () => {
+      requestPlayback()
+      window.setTimeout(requestPlayback, 500)
+      window.setTimeout(requestPlayback, 1500)
+    }
+    iframe.addEventListener("load", handleLoad)
+    return () => iframe.removeEventListener("load", handleLoad)
+  }, [embedUrl])
 
   useEffect(() => {
     if (type === "movie") return
@@ -102,7 +118,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
           allowFullScreen
           loading="eager"
           referrerPolicy="strict-origin-when-cross-origin"
-          sandbox="allow-forms allow-modals allow-orientation-lock allow-presentation allow-same-origin allow-scripts"
+          ref={iframeRef}
         />
         <Button type="button" variant="secondary" size="icon" className="absolute right-3 top-3 bg-background/90 shadow-lg backdrop-blur-sm" onClick={enterFullscreen} aria-label="Open player fullscreen">
           <Maximize />
