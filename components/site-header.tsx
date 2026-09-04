@@ -32,26 +32,26 @@ export function SiteHeader(_props?: { categories?: unknown[] }) {
         scrolled ? "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80" : "bg-gradient-to-b from-black/80 to-transparent",
       )}
     >
-      <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-6 px-4 md:px-8">
-        <Link href="/" className="shrink-0">
+      <div className="mx-auto flex min-h-16 max-w-[1600px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2 md:h-16 md:flex-nowrap md:gap-6 md:px-8 md:py-0">
+        <Link href="/" className="min-w-0 shrink-0">
           <span className="text-3xl font-extrabold uppercase tracking-tight text-primary md:text-4xl">
             Rebel<span className="text-primary">Stream</span>
           </span>
         </Link>
 
-        <div className="flex-1" />
+        <div className="hidden flex-1 md:block" />
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="order-3 flex w-full items-center gap-2 md:order-none md:ml-auto md:w-auto">
           <Link
             href="/sign-in"
             aria-label="Admin sign in"
             title="Admin sign in"
             className="h-2 w-2 shrink-0 rounded-full bg-foreground/35 transition-colors hover:bg-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
           />
-          <form onSubmit={submit} className="flex items-center">
+          <form onSubmit={submit} className="flex min-w-0 flex-1 items-center md:flex-none">
             <div
               className={cn(
-                "flex w-44 items-center overflow-hidden rounded-md border border-border bg-black/60 px-2 transition-all duration-300 md:w-9 md:border-transparent md:bg-transparent md:px-0",
+                "flex min-w-0 w-full items-center overflow-hidden rounded-md border border-border bg-black/60 px-2 transition-all duration-300 md:w-9 md:border-transparent md:bg-transparent md:px-0",
                 searchOpen && "md:w-64 md:border-border md:bg-black/60 md:px-2",
               )}
             >
@@ -68,8 +68,8 @@ export function SiteHeader(_props?: { categories?: unknown[] }) {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Titles, genres"
                 className={cn(
-                  "h-9 w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground",
-                  !searchOpen && "pointer-events-none",
+                  "h-9 min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground",
+                  !searchOpen && "md:pointer-events-none",
                 )}
               />
               {searchOpen && query && (
