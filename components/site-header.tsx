@@ -42,12 +42,6 @@ export function SiteHeader(_props?: { categories?: unknown[] }) {
         <div className="flex-1" />
 
         <div className="ml-auto flex items-center gap-2">
-          <Link
-            href="/sign-in"
-            aria-label="Admin sign in"
-            title="Admin sign in"
-            className="h-2 w-2 shrink-0 rounded-full bg-foreground/35 transition-colors hover:bg-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
-          />
           <form onSubmit={submit} className="flex items-center">
             <div
               className={cn(
