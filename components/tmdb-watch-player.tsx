@@ -35,7 +35,7 @@ function buildEmbedUrl(
 }
 
 
-export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEpisode, episodeCounts = {} }: TmdbWatchPlayerProps) {
+export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, initialEpisode, episodeCounts = {} }: TmdbWatchPlayerProps) {
   const [season, setSeason] = useState(positiveInteger(initialSeason, 1))
   const [episode, setEpisode] = useState(positiveInteger(initialEpisode, 1))
   const [drawerOpen, setDrawerOpen] = useState(false)
