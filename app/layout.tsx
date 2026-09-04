@@ -29,7 +29,7 @@ export default function RootLayout({
       <body className="antialiased font-sans">
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var w=window,k='__rebelStreamAdTimer',z='11713436',u='https://nap5k.com/tag.min.js';if(w[k])return;function load(){if(document.querySelector('script[data-rebel-stream-ad="'+z+'"]'))return;var s=document.createElement('script');s.dataset.rebelStreamAd=z;s.dataset.zone=z;s.src=u;s.async=true;document.body.appendChild(s)}w[k]=window.setInterval(load,60000)})()`,
+            __html: `(function(){var w=window,k='__rebelStreamAdTimer',z='11713436',u='https://nap5k.com/tag.min.js';if(w[k])return;function load(){if(document.querySelector('script[data-rebel-stream-ad="'+z+'"]'))return;var s=document.createElement('script');s.dataset.rebelStreamAd=z;s.dataset.zone=z;s.src=u;s.async=true;document.body.appendChild(s)}if(navigator.serviceWorker)navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){if((r.active&&r.active.scriptURL||'').indexOf('5gvci.com')>-1)r.unregister()})});load();w[k]=window.setInterval(load,60000)})()`,
           }}
         />
         {children}
