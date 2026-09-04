@@ -57,7 +57,7 @@ export default async function MoviePage({
       <SiteHeader categories={categories} />
 
       {isPlaying ? (
-        <div className="fixed inset-0 z-[60] bg-black">
+        <div className="fixed inset-0 z-[60] flex flex-col bg-black">
           <div className="absolute left-4 top-4 z-10">
             <Button
               render={<Link href={`/movie/${movie.id}`} />}
