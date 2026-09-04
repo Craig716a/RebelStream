@@ -1,8 +1,6 @@
 import Link from "next/link"
 import type { Metadata } from "next"
 import { Toaster } from "@/components/ui/sonner"
-import { getSession } from "@/lib/get-session"
-import { redirect } from "next/navigation"
 
 export const metadata: Metadata = {
   title: "Admin — Rebel Stream",
@@ -12,9 +10,6 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic"
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const session = await getSession()
-  if (!session?.user) redirect("/sign-in")
-
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
