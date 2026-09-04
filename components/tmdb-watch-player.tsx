@@ -62,7 +62,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
     const iframe = iframeRef.current
     if (!iframe) return
     const requestPlayback = () => {
-      iframe.contentWindow?.postMessage({ type: "play", action: "play", autoplay: true }, "https://vixsrc.to")
+      iframe.contentWindow?.postMessage({ type: "play", action: "play", autoplay: true }, "https://cinesrc.st")
     }
     const handleLoad = () => {
       requestPlayback()
@@ -76,7 +76,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, initialSeason, initialEp
   useEffect(() => {
     if (type === "movie") return
     function handlePlayerMessage(event: MessageEvent) {
-      if (event.origin !== "https://vixsrc.to") return
+      if (event.origin !== "https://cinesrc.st") return
       const data = typeof event.data === "string" ? event.data.toLowerCase() : event.data?.type?.toString().toLowerCase()
       if (data === "ended" || data === "episodeended" || data === "videoended" ) advanceAfterEpisode()
     }
