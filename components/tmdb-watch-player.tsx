@@ -55,9 +55,11 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
   useEffect(() => {
     if (type === "movie") return
     function handlePlayerMessage(event: MessageEvent) {
-      if (event.origin !== "https://vsembed.ru") return
-      const data = typeof event.data === "string" ? event.data.toLowerCase() : event.data?.type?.toString().toLowerCase()
-      if (data === "ended" || data === "episodeended" || data === "videoended") advanceAfterEpisode()
+      if (event.origin !== "https://embedmaster.link") return
+      const data = event.data
+      const message = typeof data === "string" ? data.toLowerCase() : ""
+      const eventType = typeof data === "object" && data ? String(data.type ?? data.event ?? data.name ?? "").toLowerCase() : ""
+      if ([message, eventType].some((value) => ["ended", "episodeended", "videoended", "video_ended", "video-ended", "playback_ended"].includes(value))) advanceAfterEpisode()
     }
     window.addEventListener("message", handlePlayerMessage)
     return () => window.removeEventListener("message", handlePlayerMessage)
@@ -113,7 +115,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
               <ChevronLeft data-icon="inline-start" />
               Previous
             </Button>
-            <Button type="button" size="sm" onClick={advanceAfterEpisode} className="gap-2">
+            <Button type="button" size="sm" onClick={advanceAfterEpisode} disabled={Boolean(episodeCounts[season] && episode >= episodeCounts[season] && !Object.keys(episodeCounts).map(Number).some((value) => value > season))} className="gap-2">
               Next episode
               <ChevronRight data-icon="inline-end" />
             </Button>
