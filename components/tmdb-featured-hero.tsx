@@ -34,11 +34,11 @@ export function TmdbFeaturedHero({ items }: { items: TmdbTitle[] }) {
   const backdrop = tmdbImage(current.backdrop_path, "original") ?? tmdbImage(current.poster_path, "w1280")
 
   return (
-    <section aria-label="Featured popular titles" className="relative isolate min-h-[530px] overflow-hidden border-b border-border md:min-h-[680px]">
+    <section aria-label="Featured popular titles" className="relative isolate min-h-[390px] overflow-hidden border-b border-border md:min-h-[500px]">
       {backdrop && <img src={backdrop} alt="" className="absolute inset-0 -z-20 h-full w-full object-cover" />}
       <div className="absolute inset-0 -z-10 bg-gradient-to-r from-background via-background/75 to-background/15" />
       <div className="absolute inset-0 -z-10 bg-gradient-to-t from-background via-background/10 to-transparent" />
-      <div className="mx-auto flex min-h-[530px] max-w-7xl items-end px-4 pb-16 md:min-h-[680px] md:px-8 md:pb-24">
+      <div className="mx-auto flex min-h-[390px] max-w-7xl items-end px-4 pb-10 md:min-h-[500px] md:px-8 md:pb-14">
         <div className="max-w-2xl">
           <p className="mb-4 text-sm font-semibold uppercase tracking-[0.25em] text-primary">Popular on Rebel Stream</p>
           <h1 className="text-balance text-4xl font-black tracking-tight md:text-7xl">{title}</h1>
