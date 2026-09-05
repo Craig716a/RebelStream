@@ -34,7 +34,7 @@ export function SiteHeader(_props?: { categories?: unknown[] }) {
     >
       <div className="mx-auto flex min-h-16 max-w-[1600px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2 md:h-16 md:flex-nowrap md:gap-6 md:px-8 md:py-0">
         <Link href="/" className="min-w-0 shrink-0">
-          <span className="text-3xl font-extrabold uppercase tracking-tight text-primary md:text-4xl">
+          <span className="text-4xl font-extrabold uppercase tracking-tight text-primary md:text-5xl">
             Rebel<span className="text-primary">Stream</span>
           </span>
         </Link>
