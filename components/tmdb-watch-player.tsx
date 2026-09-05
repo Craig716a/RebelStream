@@ -29,6 +29,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
   const [season, setSeason] = useState(positiveInteger(initialSeason, 1))
   const [episode, setEpisode] = useState(positiveInteger(initialEpisode, 1))
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [isStarted, setIsStarted] = useState(false)
   const playerRef = useRef<HTMLDivElement>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const embedUrl = useMemo(() => buildEmbedUrl({ type, tmdbId, imdbId, season, episode }), [type, tmdbId, imdbId, season, episode])
@@ -78,17 +79,24 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
   return (
     <div className="flex w-full flex-col gap-3">
       <div ref={playerRef} className="relative aspect-video min-h-[240px] w-full overflow-hidden bg-black">
-        <iframe
-          key={`${embedUrl}-${season}-${episode}`}
-          ref={iframeRef}
-          src={embedUrl}
-          title={`${title} ${type === "movie" ? "movie" : `season ${season} episode ${episode}`} player`}
-          className="absolute inset-0 size-full border-0"
-          allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-          allowFullScreen
-          loading="eager"
-          referrerPolicy="strict-origin-when-cross-origin"
-        />
+        {isStarted ? (
+          <iframe
+            key={`${embedUrl}-${season}-${episode}`}
+            ref={iframeRef}
+            src={embedUrl}
+            title={`${title} ${type === "movie" ? "movie" : `season ${season} episode ${episode}`} player`}
+            className="absolute inset-0 size-full border-0"
+            allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+            allowFullScreen
+            loading="eager"
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+        ) : (
+          <button type="button" onClick={() => setIsStarted(true)} className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-zinc-950/95 text-foreground transition-colors hover:bg-zinc-900" aria-label="Start player">
+            <span className="flex size-16 items-center justify-center rounded-full bg-primary text-3xl text-primary-foreground shadow-lg">▶</span>
+            <span className="mt-4 text-sm font-medium">Click to Start Player</span>
+          </button>
+        )}
         <Button type="button" variant="secondary" size="icon" className="absolute right-3 top-3 bg-background/90 shadow-lg backdrop-blur-sm" onClick={enterFullscreen} aria-label="Open player fullscreen">
           <Maximize />
         </Button>
