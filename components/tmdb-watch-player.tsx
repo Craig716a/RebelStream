@@ -20,9 +20,9 @@ function positiveInteger(value: number | undefined, fallback: number) {
 
 function buildEmbedUrl({ type, tmdbId, imdbId, season, episode }: TmdbWatchPlayerProps & { season: number; episode: number }) {
   if (type === "movie") {
-    return `https://vsembed.ru/embed/movie?tmdb=${encodeURIComponent(String(tmdbId))}`
+    return `https://vidfast.vc/movie/${encodeURIComponent(String(tmdbId))}?autoPlay=true`
   }
-  return `https://vsembed.ru/embed/tv?tmdb=${encodeURIComponent(String(tmdbId))}&season=${season}&episode=${episode}`
+  return `https://vidfast.vc/tv/${encodeURIComponent(String(tmdbId))}/${season}/${episode}?autoPlay=true`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, initialEpisode, episodeCounts = {} }: TmdbWatchPlayerProps) {
@@ -55,7 +55,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
   useEffect(() => {
     if (type === "movie") return
     function handlePlayerMessage(event: MessageEvent) {
-      if (event.origin !== "https://vsembed.ru") return
+      if (event.origin !== "https://vidfast.vc") return
       const data = typeof event.data === "string" ? event.data.toLowerCase() : event.data?.type?.toString().toLowerCase()
       if (data === "ended" || data === "episodeended" || data === "videoended") advanceAfterEpisode()
     }
@@ -88,6 +88,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
           allowFullScreen
           loading="eager"
           referrerPolicy="strict-origin-when-cross-origin"
+          sandbox="allow-forms allow-modals allow-orientation-lock allow-presentation allow-popups allow-same-origin allow-scripts"
         />
         <Button type="button" variant="secondary" size="icon" className="absolute right-3 top-3 bg-background/90 shadow-lg backdrop-blur-sm" onClick={enterFullscreen} aria-label="Open player fullscreen">
           <Maximize />
