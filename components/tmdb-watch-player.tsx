@@ -20,9 +20,9 @@ function positiveInteger(value: number | undefined, fallback: number) {
 
 function buildEmbedUrl({ type, tmdbId, imdbId, season, episode }: TmdbWatchPlayerProps & { season: number; episode: number }) {
   if (type === "movie") {
-    return `https://vidfast.vc/movie/${encodeURIComponent(String(tmdbId))}?autoPlay=true`
+    return `https://vsembed.ru/embed/movie?tmdb=${encodeURIComponent(String(tmdbId))}`
   }
-  return `https://vidfast.vc/tv/${encodeURIComponent(String(tmdbId))}/${season}/${episode}?autoPlay=true`
+  return `https://vsembed.ru/embed/tv?tmdb=${encodeURIComponent(String(tmdbId))}&season=${season}&episode=${episode}`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, initialEpisode, episodeCounts = {} }: TmdbWatchPlayerProps) {
@@ -56,7 +56,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
   useEffect(() => {
     if (type === "movie") return
     function handlePlayerMessage(event: MessageEvent) {
-      if (event.origin !== "https://vidfast.vc") return
+      if (event.origin !== "https://vsembed.ru") return
       const data = typeof event.data === "string" ? event.data.toLowerCase() : event.data?.type?.toString().toLowerCase()
       if (data === "ended" || data === "episodeended" || data === "videoended") advanceAfterEpisode()
     }
