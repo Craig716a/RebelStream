@@ -20,9 +20,9 @@ function positiveInteger(value: number | undefined, fallback: number) {
 
 function buildEmbedUrl({ type, tmdbId, imdbId, season, episode }: TmdbWatchPlayerProps & { season: number; episode: number }) {
   if (type === "movie") {
-    return `https://vsembed.ru/embed/movie?tmdb=${encodeURIComponent(String(tmdbId))}`
+    return `https://embedmaster.link/movie/${encodeURIComponent(String(tmdbId))}`
   }
-  return `https://vsembed.ru/embed/tv?tmdb=${encodeURIComponent(String(tmdbId))}&season=${season}&episode=${episode}`
+  return `https://embedmaster.link/tv/${encodeURIComponent(String(tmdbId))}/${season}/${episode}`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, initialEpisode, episodeCounts = {} }: TmdbWatchPlayerProps) {
@@ -88,6 +88,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
           allowFullScreen
           loading="eager"
           referrerPolicy="strict-origin-when-cross-origin"
+          sandbox="allow-forms allow-modals allow-orientation-lock allow-presentation allow-popups allow-same-origin allow-scripts"
         />
         <Button type="button" variant="secondary" size="icon" className="absolute right-3 top-3 bg-background/90 shadow-lg backdrop-blur-sm" onClick={enterFullscreen} aria-label="Open player fullscreen">
           <Maximize />
