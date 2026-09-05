@@ -5,12 +5,30 @@ import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://rebelstream.vercel.app'
+
 export const metadata: Metadata = {
-  title: 'Rebel Stream',
-  description: 'Stream movies and shows on Rebel Stream.',
-  metadataBase: new URL('https://app-restoration.vercel.app'),
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: 'Rebel Stream — Movies and TV Shows',
+    template: '%s | Rebel Stream',
+  },
+  description: 'Discover movies and TV shows on Rebel Stream with rich details, seasons, and episodes.',
+  applicationName: 'Rebel Stream',
   alternates: { canonical: '/' },
-  openGraph: { url: 'https://app-restoration.vercel.app' },
+  openGraph: {
+    type: 'website',
+    siteName: 'Rebel Stream',
+    url: siteUrl,
+    title: 'Rebel Stream — Movies and TV Shows',
+    description: 'Discover movies and TV shows on Rebel Stream.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Rebel Stream — Movies and TV Shows',
+    description: 'Discover movies and TV shows on Rebel Stream.',
+  },
+  robots: { index: true, follow: true },
   generator: 'v0.app',
 }
 
