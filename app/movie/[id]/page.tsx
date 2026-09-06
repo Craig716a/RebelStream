@@ -98,8 +98,8 @@ export default async function MoviePage({
             tmdbId={Number(movie.tmdbId ?? movie.id)}
             imdbId={imdbId}
             title={selected ? `${movie.title} — S${selected.season.seasonNumber} E${selected.episode.episodeNumber}: ${selected.episode.title}` : movie.title}
-            initialSeason={selected?.season.seasonNumber}
-            initialEpisode={selected?.episode.episodeNumber}
+            initialSeason={episode ? selected?.season.seasonNumber : undefined}
+            initialEpisode={episode ? selected?.episode.episodeNumber : undefined}
             episodeCounts={Object.fromEntries(seriesRows.map((row) => [row.season.seasonNumber, Math.max(...seriesRows.filter((item) => item.season.seasonNumber === row.season.seasonNumber).map((item) => item.episode.episodeNumber))]))}
           />
         </div>
