@@ -175,7 +175,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
               Season
               <div className="relative">
                 <select value={season} onChange={(event) => setSeason(Number(event.target.value))} className="h-9 w-full appearance-none rounded-md border border-input bg-background px-3 pr-8 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring">
-                  {Array.from({ length: Math.max(10, ...Object.keys(episodeCounts).map(Number), season) }, (_, index) => <option key={index + 1} value={index + 1}>Season {index + 1}</option>)}
+                  {(Object.keys(episodeCounts).map(Number).filter((value) => value > 0).sort((a, b) => a - b).length ? Object.keys(episodeCounts).map(Number).filter((value) => value > 0).sort((a, b) => a - b) : [season]).map((seasonNumber) => <option key={seasonNumber} value={seasonNumber}>Season {seasonNumber}</option>)}
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-2 top-2.5 size-4 text-muted-foreground" aria-hidden="true" />
               </div>
