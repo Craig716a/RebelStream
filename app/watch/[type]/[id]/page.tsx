@@ -41,7 +41,15 @@ export default async function TmdbWatchPage({ params, searchParams }: WatchPageP
         </Button>
 
         <section className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-2xl" aria-label={`${name} video player`}>
-          <MovieWatchPlayer type={type} tmdbId={id} title={name} imdbId={imdbId} initialSeason={season} initialEpisode={episode} episodeCounts={episodeCounts} />
+          <MovieWatchPlayer
+            type={type}
+            tmdbId={id}
+            title={name}
+            imdbId={imdbId}
+            initialSeason={query.season ? season : undefined}
+            initialEpisode={query.episode ? episode : undefined}
+            episodeCounts={episodeCounts}
+          />
           <div className="flex items-center gap-3 border-t border-border/60 px-4 py-3 text-xs text-muted-foreground md:px-5">
             <Clapperboard className="size-4" aria-hidden="true" />
             <span>{type === "movie" ? "Movie player" : type === "anime" ? "Anime player" : "Series player"}</span>
