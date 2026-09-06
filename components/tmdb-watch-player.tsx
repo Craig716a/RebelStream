@@ -4,6 +4,14 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { ChevronDown, ChevronLeft, ChevronRight, ListVideo, Maximize, RotateCcw, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+type WatchHistory = {
+  season?: number
+  episode?: number
+  updatedAt: number
+}
+
+const WATCH_HISTORY_KEY = "rebel-stream-watch-history"
+
 type TmdbWatchPlayerProps = {
   type: "movie" | "tv" | "anime"
   tmdbId: number
@@ -29,9 +37,39 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
   const [season, setSeason] = useState(positiveInteger(initialSeason, 1))
   const [episode, setEpisode] = useState(positiveInteger(initialEpisode, 1))
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const historyKey = `${type}:${tmdbId}`
+  const hasExplicitEpisode = initialSeason !== undefined || initialEpisode !== undefined
   const playerRef = useRef<HTMLDivElement>(null)
+  const historyLoadedRef = useRef(hasExplicitEpisode)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const embedUrl = useMemo(() => buildEmbedUrl({ type, tmdbId, imdbId, season, episode }), [type, tmdbId, imdbId, season, episode])
+
+  useEffect(() => {
+    if (hasExplicitEpisode) return
+    try {
+      const history = JSON.parse(localStorage.getItem(WATCH_HISTORY_KEY) || "{}") as Record<string, WatchHistory>
+      const saved = history[historyKey]
+      if (saved) {
+        setSeason(positiveInteger(saved.season, 1))
+        setEpisode(positiveInteger(saved.episode, 1))
+      }
+    } catch {
+      // Ignore malformed client history.
+    } finally {
+      historyLoadedRef.current = true
+    }
+  }, [hasExplicitEpisode, historyKey])
+
+  useEffect(() => {
+    if (!historyLoadedRef.current) return
+    try {
+      const history = JSON.parse(localStorage.getItem(WATCH_HISTORY_KEY) || "{}") as Record<string, WatchHistory>
+      history[historyKey] = { season, episode, updatedAt: Date.now() }
+      localStorage.setItem(WATCH_HISTORY_KEY, JSON.stringify(history))
+    } catch {
+      // Ignore unavailable client storage.
+    }
+  }, [historyKey, season, episode])
 
   function selectEpisode(nextSeason: number, nextEpisode: number) {
     setSeason(positiveInteger(nextSeason, 1))
