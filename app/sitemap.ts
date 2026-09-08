@@ -3,7 +3,7 @@ import { getTmdbByType, getTmdbGenreNames, slugifyTitle, tmdbWatchPath } from "@
 
 export const dynamic = "force-dynamic"
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://app-restoration.vercel.app"
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://rebelstream.vercel.app"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [movies, shows, genres] = await Promise.all([
@@ -16,10 +16,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   add("/", "daily", 1)
   add("/catalog", "daily", 0.9)
+  add("/search", "weekly", 0.7)
   add("/watch/movies", "daily", 0.9)
   add("/watch/tv", "daily", 0.9)
   for (const genre of genres) add(`/watch/${slugifyTitle(genre.name)}`, "daily", 0.75)
   for (const title of [...movies.items, ...shows.items]) add(tmdbWatchPath(title), "weekly", 0.65)
 
   return [...urls.values()].slice(0, 100)
+}
 }

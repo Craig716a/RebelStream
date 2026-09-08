@@ -4,6 +4,14 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { ChevronDown, ChevronLeft, ChevronRight, ListVideo, Maximize, RotateCcw, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+type WatchHistory = {
+  season?: number
+  episode?: number
+  updatedAt: number
+}
+
+const WATCH_HISTORY_KEY = "rebel-stream-watch-history"
+
 type TmdbWatchPlayerProps = {
   type: "movie" | "tv" | "anime"
   tmdbId: number
@@ -20,18 +28,48 @@ function positiveInteger(value: number | undefined, fallback: number) {
 
 function buildEmbedUrl({ type, tmdbId, imdbId, season, episode }: TmdbWatchPlayerProps & { season: number; episode: number }) {
   if (type === "movie") {
-    return `https://vsembed.ru/embed/movie?tmdb=${encodeURIComponent(String(tmdbId))}`
+    return `https://embedmaster.link/movie/${encodeURIComponent(String(tmdbId))}`
   }
-  return `https://vsembed.ru/embed/tv?tmdb=${encodeURIComponent(String(tmdbId))}&season=${season}&episode=${episode}`
+  return `https://embedmaster.link/tv/${encodeURIComponent(String(tmdbId))}/${season}/${episode}`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, initialEpisode, episodeCounts = {} }: TmdbWatchPlayerProps) {
   const [season, setSeason] = useState(positiveInteger(initialSeason, 1))
   const [episode, setEpisode] = useState(positiveInteger(initialEpisode, 1))
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const historyKey = `${type}:${tmdbId}`
+  const hasExplicitEpisode = initialSeason !== undefined || initialEpisode !== undefined
   const playerRef = useRef<HTMLDivElement>(null)
+  const historyLoadedRef = useRef(hasExplicitEpisode)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const embedUrl = useMemo(() => buildEmbedUrl({ type, tmdbId, imdbId, season, episode }), [type, tmdbId, imdbId, season, episode])
+
+  useEffect(() => {
+    if (hasExplicitEpisode) return
+    try {
+      const history = JSON.parse(localStorage.getItem(WATCH_HISTORY_KEY) || "{}") as Record<string, WatchHistory>
+      const saved = history[historyKey]
+      if (saved) {
+        setSeason(positiveInteger(saved.season, 1))
+        setEpisode(positiveInteger(saved.episode, 1))
+      }
+    } catch {
+      // Ignore malformed client history.
+    } finally {
+      historyLoadedRef.current = true
+    }
+  }, [hasExplicitEpisode, historyKey])
+
+  useEffect(() => {
+    if (!historyLoadedRef.current) return
+    try {
+      const history = JSON.parse(localStorage.getItem(WATCH_HISTORY_KEY) || "{}") as Record<string, WatchHistory>
+      history[historyKey] = { season, episode, updatedAt: Date.now() }
+      localStorage.setItem(WATCH_HISTORY_KEY, JSON.stringify(history))
+    } catch {
+      // Ignore unavailable client storage.
+    }
+  }, [historyKey, season, episode])
 
   function selectEpisode(nextSeason: number, nextEpisode: number) {
     setSeason(positiveInteger(nextSeason, 1))
@@ -55,9 +93,11 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
   useEffect(() => {
     if (type === "movie") return
     function handlePlayerMessage(event: MessageEvent) {
-      if (event.origin !== "https://vsembed.ru") return
-      const data = typeof event.data === "string" ? event.data.toLowerCase() : event.data?.type?.toString().toLowerCase()
-      if (data === "ended" || data === "episodeended" || data === "videoended") advanceAfterEpisode()
+      if (event.origin !== "https://embedmaster.link") return
+      const data = event.data
+      const message = typeof data === "string" ? data.toLowerCase() : ""
+      const eventType = typeof data === "object" && data ? String(data.type ?? data.event ?? data.name ?? "").toLowerCase() : ""
+      if ([message, eventType].some((value) => ["ended", "episodeended", "videoended", "video_ended", "video-ended", "playback_ended"].includes(value))) advanceAfterEpisode()
     }
     window.addEventListener("message", handlePlayerMessage)
     return () => window.removeEventListener("message", handlePlayerMessage)
@@ -88,6 +128,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
           allowFullScreen
           loading="eager"
           referrerPolicy="strict-origin-when-cross-origin"
+          sandbox="allow-forms allow-modals allow-orientation-lock allow-presentation allow-same-origin allow-scripts"
         />
         <Button type="button" variant="secondary" size="icon" className="absolute right-3 top-3 bg-background/90 shadow-lg backdrop-blur-sm" onClick={enterFullscreen} aria-label="Open player fullscreen">
           <Maximize />
@@ -112,7 +153,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
               <ChevronLeft data-icon="inline-start" />
               Previous
             </Button>
-            <Button type="button" size="sm" onClick={advanceAfterEpisode} className="gap-2">
+            <Button type="button" size="sm" onClick={advanceAfterEpisode} disabled={Boolean(episodeCounts[season] && episode >= episodeCounts[season] && !Object.keys(episodeCounts).map(Number).some((value) => value > season))} className="gap-2">
               Next episode
               <ChevronRight data-icon="inline-end" />
             </Button>
@@ -134,7 +175,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
               Season
               <div className="relative">
                 <select value={season} onChange={(event) => setSeason(Number(event.target.value))} className="h-9 w-full appearance-none rounded-md border border-input bg-background px-3 pr-8 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring">
-                  {Array.from({ length: Math.max(10, ...Object.keys(episodeCounts).map(Number), season) }, (_, index) => <option key={index + 1} value={index + 1}>Season {index + 1}</option>)}
+                  {(Object.keys(episodeCounts).map(Number).filter((value) => value > 0).sort((a, b) => a - b).length ? Object.keys(episodeCounts).map(Number).filter((value) => value > 0).sort((a, b) => a - b) : [season]).map((seasonNumber) => <option key={seasonNumber} value={seasonNumber}>Season {seasonNumber}</option>)}
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-2 top-2.5 size-4 text-muted-foreground" aria-hidden="true" />
               </div>

@@ -22,12 +22,24 @@ export async function generateMetadata({
   const { id } = await params
   const movie = await getMovieById(Number(id))
   if (!movie) return { title: "Not found — Rebel Stream" }
+  const canonicalUrl = `/movie/${movie.id}`
+  const description = movie.description || `Discover ${movie.title} on Rebel Stream.`
   return {
-    title: `${movie.title} — Rebel Stream`,
-    description: movie.description || `Watch ${movie.title} on Rebel Stream`,
+    title: movie.title,
+    description,
+    alternates: { canonical: canonicalUrl },
     openGraph: {
-      title: `${movie.title} — Rebel Stream`,
-      description: movie.description || `Watch ${movie.title} on Rebel Stream`,
+      type: movie.isSeries ? "video.tv_show" : "video.movie",
+      title: movie.title,
+      description,
+      url: canonicalUrl,
+      siteName: "Rebel Stream",
+      images: movie.thumbnailUrl ? [{ url: movie.thumbnailUrl, alt: movie.title }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: movie.title,
+      description,
       images: movie.thumbnailUrl ? [movie.thumbnailUrl] : undefined,
     },
   }
@@ -52,8 +64,20 @@ export default async function MoviePage({
   const selected = seriesRows[selectedIndex]
   const isPlaying = play === "1"
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://rebelstream.vercel.app"
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": movie.isSeries ? "TVSeries" : "Movie",
+    name: movie.title,
+    description: movie.description || undefined,
+    image: movie.thumbnailUrl || undefined,
+    url: `${siteUrl}/movie/${movie.id}`,
+    ...(movie.year ? { dateCreated: String(movie.year) } : {}),
+  }
+
   return (
     <div className="min-h-screen bg-background">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <SiteHeader categories={categories} />
 
       {isPlaying ? (
@@ -74,8 +98,8 @@ export default async function MoviePage({
             tmdbId={Number(movie.tmdbId ?? movie.id)}
             imdbId={imdbId}
             title={selected ? `${movie.title} — S${selected.season.seasonNumber} E${selected.episode.episodeNumber}: ${selected.episode.title}` : movie.title}
-            initialSeason={selected?.season.seasonNumber}
-            initialEpisode={selected?.episode.episodeNumber}
+            initialSeason={episode ? selected?.season.seasonNumber : undefined}
+            initialEpisode={episode ? selected?.episode.episodeNumber : undefined}
             episodeCounts={Object.fromEntries(seriesRows.map((row) => [row.season.seasonNumber, Math.max(...seriesRows.filter((item) => item.season.seasonNumber === row.season.seasonNumber).map((item) => item.episode.episodeNumber))]))}
           />
         </div>
