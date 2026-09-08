@@ -42,12 +42,6 @@ export function SiteHeader(_props?: { categories?: unknown[] }) {
         <div className="hidden flex-1 md:block" />
 
         <div className="order-3 flex w-full items-center gap-2 md:order-none md:ml-auto md:w-auto">
-          <Link
-            href="/sign-in"
-            aria-label="Admin sign in"
-            title="Admin sign in"
-            className="h-2 w-2 shrink-0 rounded-full bg-foreground/35 transition-colors hover:bg-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
-          />
           <form onSubmit={submit} className="flex min-w-0 flex-1 items-center md:flex-none">
             <div
               className={cn(

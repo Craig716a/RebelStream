@@ -46,6 +46,16 @@ export async function getTmdbGenres(type: "movie" | "tv" = "movie") {
   return data.genres
 }
 
+export async function getTmdbByType(type: "movie" | "tv", page = 1) {
+  const data = await tmdbFetch<{ results: TmdbTitle[]; page?: number; total_pages?: number; total_results?: number }>(`/${type}/popular?language=en-US&page=${page}`)
+  return {
+    items: data.results.map((item) => ({ ...item, media_type: type })),
+    page: data.page ?? page,
+    total_pages: data.total_pages ?? 1,
+    total_results: data.total_results ?? data.results.length,
+  }
+}
+
 export async function getTmdbPopular(limit = 8) {
   const [movies, shows] = await Promise.all([
     tmdbFetch<{ results: TmdbTitle[] }>(`/movie/popular?language=en-US&page=1`),
