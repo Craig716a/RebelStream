@@ -119,7 +119,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
     <div className="flex w-full flex-col gap-3">
       <div ref={playerRef} className="relative aspect-video min-h-[240px] w-full overflow-hidden bg-black">
         <iframe
-          key={`${embedUrl}-${season}-${episode}`}
+          key={`${type}-${tmdbId}-${season}-${episode}-${embedUrl}`}
           ref={iframeRef}
           src={embedUrl}
           title={`${title} ${type === "movie" ? "movie" : `season ${season} episode ${episode}`} player`}
@@ -128,7 +128,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
           allowFullScreen
           loading="eager"
           referrerPolicy="strict-origin-when-cross-origin"
-          sandbox="allow-forms allow-modals allow-orientation-lock allow-presentation allow-same-origin allow-scripts"
+          sandbox="allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-same-origin allow-scripts"
         />
         <Button type="button" variant="secondary" size="icon" className="absolute right-3 top-3 bg-background/90 shadow-lg backdrop-blur-sm" onClick={enterFullscreen} aria-label="Open player fullscreen">
           <Maximize />
