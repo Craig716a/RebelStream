@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
-import { Search, X } from "lucide-react"
+import { Bookmark, Clock3, Grid2X2, Search, Sparkles, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export function SiteHeader(_props?: { categories?: unknown[] }) {
@@ -41,13 +41,15 @@ export function SiteHeader(_props?: { categories?: unknown[] }) {
 
         <div className="hidden flex-1 md:block" />
 
+        <nav className="hidden items-center gap-2 md:flex" aria-label="Quick links">
+          {[
+            [Bookmark, "Saved", "/search?saved=1"],
+            [Clock3, "History", "/search?history=1"],
+            [Grid2X2, "Collections", "/category/popular"],
+            [Sparkles, "Discover", "/search"],
+          ].map(([Icon, label, href]) => <Link key={label as string} href={href as string} aria-label={label as string} title={label as string} className="grid size-10 place-items-center rounded-xl border border-border bg-card/60 text-muted-foreground transition-colors hover:border-primary hover:text-foreground"><Icon className="size-5" /></Link>)}
+        </nav>
         <div className="order-3 flex w-full items-center gap-2 md:order-none md:ml-auto md:w-auto">
-          <Link
-            href="/sign-in"
-            aria-label="Admin sign in"
-            title="Admin sign in"
-            className="h-2 w-2 shrink-0 rounded-full bg-foreground/35 transition-colors hover:bg-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
-          />
           <form onSubmit={submit} className="flex min-w-0 flex-1 items-center md:flex-none">
             <div
               className={cn(
@@ -81,6 +83,9 @@ export function SiteHeader(_props?: { categories?: unknown[] }) {
           </form>
         </div>
       </div>
+      <nav className="mx-auto flex max-w-7xl items-center justify-around border-t border-border/70 bg-background/95 px-2 py-2 md:hidden" aria-label="Mobile navigation">
+        {[[Grid2X2, "Home", "/"], [Search, "Search", "/search"], [Clock3, "History", "/search?history=1"], [Sparkles, "Discover", "/category/popular"]].map(([Icon, label, href]) => <Link key={label as string} href={href as string} className="flex min-w-16 flex-col items-center gap-1 text-[10px] text-muted-foreground"><Icon className="size-5" /><span>{label as string}</span></Link>)}
+      </nav>
     </header>
   )
 }
