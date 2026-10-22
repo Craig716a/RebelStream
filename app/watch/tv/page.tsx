@@ -6,7 +6,8 @@ export const dynamic = "force-dynamic"
 export const revalidate = 3600
 export const metadata: Metadata = {
   title: "Watch TV Shows Online — Rebel Stream",
-  description: "Browse popular TV shows and series with live TMDb data.",
+  description: "Browse free TV shows and series with live TMDb data.",
+  keywords: ["free TV shows", "watch free series", "TV shows online"],
 }
 
 export default async function WatchTvPage() {
