@@ -26,11 +26,18 @@ function positiveInteger(value: number | undefined, fallback: number) {
   return Number.isInteger(value) && value && value > 0 ? value : fallback
 }
 
-function buildEmbedUrl({ type, tmdbId, imdbId, season, episode }: TmdbWatchPlayerProps & { season: number; episode: number }) {
+function buildEmbedUrl({ type, tmdbId, season, episode }: TmdbWatchPlayerProps & { season: number; episode: number }) {
+  const id = encodeURIComponent(String(tmdbId))
+
   if (type === "movie") {
-    return `https://embedmaster.link/movie/${encodeURIComponent(String(tmdbId))}`
+    return `https://vidly.pro/movie/${id}`
   }
-  return `https://embedmaster.link/tv/${encodeURIComponent(String(tmdbId))}/${season}/${episode}`
+
+  if (type === "anime") {
+    return `https://vidly.pro/anime/mal/${id}/${season}/sub`
+  }
+
+  return `https://vidly.pro/tv/${id}/${season}/${episode}`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, initialEpisode, episodeCounts = {} }: TmdbWatchPlayerProps) {
@@ -93,7 +100,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
   useEffect(() => {
     if (type === "movie") return
     function handlePlayerMessage(event: MessageEvent) {
-      if (event.origin !== "https://embedmaster.link") return
+      if (event.origin !== "https://vidly.pro") return
       const data = event.data
       const message = typeof data === "string" ? data.toLowerCase() : ""
       const eventType = typeof data === "object" && data ? String(data.type ?? data.event ?? data.name ?? "").toLowerCase() : ""
@@ -119,7 +126,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
     <div className="flex w-full flex-col gap-3">
       <div ref={playerRef} className="relative aspect-video min-h-[240px] w-full overflow-hidden bg-black">
         <iframe
-          key={`${embedUrl}-${season}-${episode}`}
+          key={`${type}-${tmdbId}-${season}-${episode}-${embedUrl}`}
           ref={iframeRef}
           src={embedUrl}
           title={`${title} ${type === "movie" ? "movie" : `season ${season} episode ${episode}`} player`}
@@ -128,7 +135,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
           allowFullScreen
           loading="eager"
           referrerPolicy="strict-origin-when-cross-origin"
-          sandbox="allow-forms allow-modals allow-orientation-lock allow-presentation allow-same-origin allow-scripts"
+          sandbox="allow-downloads allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-presentation allow-same-origin allow-scripts"
         />
         <Button type="button" variant="secondary" size="icon" className="absolute right-3 top-3 bg-background/90 shadow-lg backdrop-blur-sm" onClick={enterFullscreen} aria-label="Open player fullscreen">
           <Maximize />
