@@ -26,11 +26,18 @@ function positiveInteger(value: number | undefined, fallback: number) {
   return Number.isInteger(value) && value && value > 0 ? value : fallback
 }
 
-function buildEmbedUrl({ type, tmdbId, imdbId, season, episode }: TmdbWatchPlayerProps & { season: number; episode: number }) {
+function buildEmbedUrl({ type, tmdbId, season, episode }: TmdbWatchPlayerProps & { season: number; episode: number }) {
+  const id = encodeURIComponent(String(tmdbId))
+
   if (type === "movie") {
-    return `https://embedmaster.link/movie/${encodeURIComponent(String(tmdbId))}`
+    return `https://vidly.pro/movie/${id}`
   }
-  return `https://embedmaster.link/tv/${encodeURIComponent(String(tmdbId))}/${season}/${episode}`
+
+  if (type === "anime") {
+    return `https://vidly.pro/anime/mal/${id}/${season}/sub`
+  }
+
+  return `https://vidly.pro/tv/${id}/${season}/${episode}`
 }
 
 export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, initialEpisode, episodeCounts = {} }: TmdbWatchPlayerProps) {
@@ -93,7 +100,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
   useEffect(() => {
     if (type === "movie") return
     function handlePlayerMessage(event: MessageEvent) {
-      if (event.origin !== "https://embedmaster.link") return
+      if (event.origin !== "https://vidly.pro") return
       const data = event.data
       const message = typeof data === "string" ? data.toLowerCase() : ""
       const eventType = typeof data === "object" && data ? String(data.type ?? data.event ?? data.name ?? "").toLowerCase() : ""
