@@ -14,6 +14,7 @@ export const metadata: Metadata = {
     template: '%s | Rebel Stream',
   },
   description: 'Discover free movies and TV shows on Rebel Stream with rich details, seasons, and episodes.',
+  keywords: ['free movies', 'free TV shows', 'watch movies online', 'watch TV series online', 'Rebel Stream'],
   applicationName: 'Rebel Stream',
   alternates: { canonical: '/' },
   openGraph: {

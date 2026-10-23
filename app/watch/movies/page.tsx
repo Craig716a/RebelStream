@@ -6,7 +6,8 @@ export const dynamic = "force-dynamic"
 export const revalidate = 3600
 export const metadata: Metadata = {
   title: "Watch Movies Online — Rebel Stream",
-  description: "Browse popular movies, new releases, and highly rated films with live TMDb data.",
+  description: "Browse free movies, new releases, and highly rated films with live TMDb data.",
+  keywords: ["free movies", "watch free movies", "movies online"],
 }
 
 export default async function WatchMoviesPage() {

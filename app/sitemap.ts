@@ -6,11 +6,14 @@ export const dynamic = "force-dynamic"
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://rebelstream.vercel.app"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [movies, shows, genres] = await Promise.all([
-    getTmdbByType("movie"),
-    getTmdbByType("tv"),
+  const pages = [1, 2, 3, 4, 5]
+  const [moviePages, tvPages, genres] = await Promise.all([
+    Promise.all(pages.map((page) => getTmdbByType("movie", page))),
+    Promise.all(pages.map((page) => getTmdbByType("tv", page))),
     getTmdbGenreNames(),
   ])
+  const movies = moviePages.flatMap((result) => result.items)
+  const shows = tvPages.flatMap((result) => result.items)
   const urls = new Map<string, MetadataRoute.Sitemap[number]>()
   const add = (path: string, changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] = "daily", priority = 0.7) => urls.set(path, { url: `${siteUrl}${path}`, lastModified: new Date(), changeFrequency, priority })
 
@@ -20,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   add("/watch/movies", "daily", 0.9)
   add("/watch/tv", "daily", 0.9)
   for (const genre of genres) add(`/watch/${slugifyTitle(genre.name)}`, "daily", 0.75)
-  for (const title of [...movies.items, ...shows.items]) add(tmdbWatchPath(title), "weekly", 0.65)
+  for (const title of [...movies, ...shows]) add(tmdbWatchPath(title), "weekly", 0.65)
 
   return [...urls.values()].slice(0, 100)
 }
