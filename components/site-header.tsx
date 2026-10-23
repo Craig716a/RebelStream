@@ -2,50 +2,89 @@
 
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useState } from "react"
-import { Bookmark, Clock3, Layers3, Search, Sparkles } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Bookmark, Clock3, Grid2X2, Search, Sparkles, X } from "lucide-react"
+import { cn } from "@/lib/utils"
 
-export function SiteHeader() {
+export function SiteHeader(_props?: { categories?: unknown[] }) {
   const router = useRouter()
   const params = useSearchParams()
-  const [query, setQuery] = useState(params.get("q") ?? "")
+  const [scrolled, setScrolled] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [query, setQuery] = useState(params.get("q") ?? "")
 
-  function submit(event: React.FormEvent) {
-    event.preventDefault()
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20)
+    onScroll()
+    window.addEventListener("scroll", onScroll)
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault()
     if (query.trim()) router.push(`/search?q=${encodeURIComponent(query.trim())}`)
   }
 
-  const controls = [
-    { icon: Search, label: "Search", action: () => setSearchOpen((open) => !open) },
-    { icon: Bookmark, label: "Saved", href: "/search?saved=1" },
-    { icon: Clock3, label: "History", href: "/search?history=1" },
-    { icon: Layers3, label: "Movies", href: "/catalog" },
-    { icon: Sparkles, label: "Discover", href: "/category/popular" },
-  ]
-
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-black/95 backdrop-blur-xl">
-      <div className="mx-auto flex h-[104px] max-w-[1120px] items-center gap-3 px-5 sm:h-[112px] sm:px-8">
-        <Link href="/" aria-label="Rebel Stream home" className="flex shrink-0 items-center gap-3">
-          <span className="grid size-14 place-items-center rounded-xl bg-white text-[22px] font-medium tracking-tight text-black shadow-sm">fx</span>
-          <span className="text-[25px] font-bold tracking-[-0.06em] text-white">frame<span className="font-black">xTV</span></span>
+    <header
+      className={cn(
+        "fixed inset-x-0 top-0 z-50 transition-colors duration-300",
+        scrolled ? "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80" : "bg-gradient-to-b from-black/80 to-transparent",
+      )}
+    >
+      <div className="mx-auto flex min-h-16 max-w-[1600px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2 md:h-16 md:flex-nowrap md:gap-6 md:px-8 md:py-0">
+        <Link href="/" className="min-w-0 shrink-0">
+          <span className="text-4xl font-extrabold uppercase tracking-tight text-foreground md:text-5xl">
+            Rebel<span className="text-foreground">Stream</span>
+          </span>
         </Link>
-        <div className="ml-auto flex items-center gap-2">
-          {controls.map(({ icon: Icon, label, href, action }) => href ? (
-            <Link key={label} href={href} aria-label={label} className="grid size-[52px] place-items-center rounded-2xl border border-white/10 bg-[#080808] text-[#a5a3b0] transition hover:border-white/30 hover:text-white">
-              <Icon className="size-6" strokeWidth={1.8} />
-            </Link>
-          ) : (
-            <button key={label} type="button" aria-label={label} onClick={action} className="grid size-[52px] place-items-center rounded-2xl border border-white/10 bg-[#080808] text-[#a5a3b0] transition hover:border-white/30 hover:text-white">
-              <Icon className="size-6" strokeWidth={1.8} />
-            </button>
-          ))}
+
+        <div className="hidden flex-1 md:block" />
+
+        <nav className="hidden items-center gap-2 md:flex" aria-label="Quick links">
+          {[
+            [Bookmark, "Saved", "/search?saved=1"],
+            [Clock3, "History", "/search?history=1"],
+            [Grid2X2, "Collections", "/category/popular"],
+            [Sparkles, "Discover", "/search"],
+          ].map(([Icon, label, href]) => <Link key={label as string} href={href as string} aria-label={label as string} title={label as string} className="grid size-10 place-items-center rounded-xl border border-border bg-card/60 text-muted-foreground transition-colors hover:border-primary hover:text-foreground"><Icon className="size-5" /></Link>)}
+        </nav>
+        <div className="order-3 flex w-full items-center gap-2 md:order-none md:ml-auto md:w-auto">
+          <form onSubmit={submit} className="flex min-w-0 flex-1 items-center md:flex-none">
+            <div
+              className={cn(
+                "flex min-w-0 w-full items-center overflow-hidden rounded-md border border-border bg-black/60 px-2 transition-all duration-300 md:w-9 md:border-transparent md:bg-transparent md:px-0",
+                searchOpen && "md:w-64 md:border-border md:bg-black/60 md:px-2",
+              )}
+            >
+              <button
+                type="button"
+                aria-label="Search"
+                onClick={() => setSearchOpen((v) => !v)}
+                className="grid h-9 w-9 shrink-0 place-items-center text-foreground"
+              >
+                <Search className="h-5 w-5" />
+              </button>
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Titles, genres"
+                className={cn(
+                  "h-9 min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground",
+                  !searchOpen && "md:pointer-events-none",
+                )}
+              />
+              {searchOpen && query && (
+                <button type="button" aria-label="Clear search" onClick={() => setQuery("")}>
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+              )}
+            </div>
+          </form>
         </div>
       </div>
-      {searchOpen && <form onSubmit={submit} className="border-t border-white/10 bg-black px-5 py-3"><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search movies and series" className="h-12 w-full rounded-xl border border-white/15 bg-[#111] px-4 text-base text-white outline-none placeholder:text-[#777] focus:border-white/40" /></form>}
-      <nav className="mx-auto flex h-[76px] max-w-[1120px] items-center justify-around border-t border-white/10 bg-black px-2 md:hidden" aria-label="Mobile navigation">
-        {[[Layers3, "Home", "/"], [Search, "Movies", "/catalog"], [Clock3, "TV", "/category/tv"], [Sparkles, "Anime", "/category/anime"], [Bookmark, "API", "/search"]].map(([Icon, label, href]) => <Link key={label as string} href={href as string} className="flex min-w-14 flex-col items-center gap-1 text-[12px] text-[#777582]"><Icon className="size-6" strokeWidth={1.8} /><span>{label as string}</span></Link>)}
+      <nav className="mx-auto flex max-w-7xl items-center justify-around border-t border-border/70 bg-background/95 px-2 py-2 md:hidden" aria-label="Mobile navigation">
+        {[[Grid2X2, "Home", "/"], [Search, "Search", "/search"], [Clock3, "History", "/search?history=1"], [Sparkles, "Discover", "/category/popular"]].map(([Icon, label, href]) => <Link key={label as string} href={href as string} className="flex min-w-16 flex-col items-center gap-1 text-[10px] text-muted-foreground"><Icon className="size-5" /><span>{label as string}</span></Link>)}
       </nav>
     </header>
   )
