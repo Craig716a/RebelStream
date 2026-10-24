@@ -41,18 +41,22 @@ export function SiteHeader(_props?: { categories?: unknown[] }) {
 
         <div className="hidden flex-1 md:block" />
 
-        <div className="order-3 w-full md:order-none md:ml-auto md:w-auto">
-          <form onSubmit={submit} className="flex w-full items-center">
-            <div className="flex h-[70px] w-full items-center overflow-hidden rounded-xl border border-white/20 bg-black/45 px-5 backdrop-blur-sm md:h-12 md:w-[360px]">
-              <button type="button" aria-label="Search" onClick={() => setSearchOpen(true)} className="grid h-10 w-10 shrink-0 place-items-center text-white">
-                <Search className="h-8 w-8" />
+        <div className="order-3 flex w-full items-center gap-2 md:order-none md:ml-auto md:w-auto">
+          <form onSubmit={submit} className="flex min-w-0 flex-1 items-center md:flex-none">
+            <div className={cn(
+              "flex min-w-0 w-full items-center overflow-hidden rounded-md border border-border bg-black/60 px-2 transition-all duration-300 md:w-9 md:border-transparent md:bg-transparent md:px-0",
+              searchOpen && "md:w-64 md:border-border md:bg-black/60 md:px-2",
+            )}>
+              <button type="button" aria-label="Search" onClick={() => setSearchOpen((v) => !v)} className="grid h-9 w-9 shrink-0 place-items-center text-foreground">
+                <Search className="h-5 w-5" />
               </button>
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Titles, genres"
                 className={cn(
-                  "h-12 min-w-0 flex-1 bg-transparent text-[24px] text-foreground outline-none placeholder:text-white/60 md:text-base",
+                  "h-9 min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground",
+                  !searchOpen && "md:pointer-events-none",
                 )}
               />
               {searchOpen && query && (
