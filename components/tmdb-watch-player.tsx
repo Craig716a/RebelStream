@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { ChevronDown, ChevronLeft, ChevronRight, ListVideo, Maximize, RotateCcw, X } from "lucide-react"
+import { ChevronDown, ChevronLeft, ChevronRight, ListVideo, RotateCcw, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 type WatchHistory = {
@@ -110,17 +110,6 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
     return () => window.removeEventListener("message", handlePlayerMessage)
   }, [type, season, episode, episodeCounts])
 
-  async function enterFullscreen() {
-    const element = playerRef.current
-    if (!element) return
-    await element.requestFullscreen?.()
-    try {
-      const orientation = screen.orientation as ScreenOrientation & { lock?: (orientation: string) => Promise<void> }
-      await orientation.lock?.("landscape")
-    } catch {
-      // Orientation locking is unavailable in some mobile browsers.
-    }
-  }
 
   return (
     <div className="flex w-full flex-col gap-3">
@@ -136,9 +125,6 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
           loading="eager"
           referrerPolicy="strict-origin-when-cross-origin"
         />
-        <Button type="button" variant="secondary" size="icon" className="absolute right-3 top-3 bg-background/90 shadow-lg backdrop-blur-sm" onClick={enterFullscreen} aria-label="Open player fullscreen">
-          <Maximize />
-        </Button>
         {type !== "movie" && (
           <Button type="button" variant="secondary" size="sm" className="absolute right-16 top-3 gap-2 bg-background/90 shadow-lg backdrop-blur-sm hover:bg-background" aria-expanded={drawerOpen} aria-controls="episode-drawer" onClick={() => setDrawerOpen((open) => !open)}>
             <ListVideo data-icon="inline-start" />
