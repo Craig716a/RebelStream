@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { movies, categories, seasons, episodes } from "@/lib/db/schema"
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
+import { requireAdmin } from "@/lib/get-session"
 
 // ---------- Public reads ----------
 
@@ -97,6 +98,7 @@ export type MovieInput = {
 }
 
 export async function getAllMoviesAdmin() {
+  await requireAdmin()
   const rows = await db
     .select({
       id: movies.id,
@@ -118,6 +120,7 @@ export async function getAllMoviesAdmin() {
 }
 
 export async function getAdminStats() {
+  await requireAdmin()
   const [stats] = await db
     .select({
       totalMovies: sql<number>`count(*)::int`,
@@ -129,6 +132,7 @@ export async function getAdminStats() {
 }
 
 export async function createMovie(input: MovieInput) {
+  await requireAdmin()
   if (input.featured) {
     await db.update(movies).set({ featured: false }).where(eq(movies.featured, true))
   }
@@ -149,6 +153,7 @@ export async function createMovie(input: MovieInput) {
 }
 
 export async function updateMovie(id: number, input: MovieInput) {
+  await requireAdmin()
   if (input.featured) {
     await db
       .update(movies)
@@ -176,12 +181,14 @@ export async function updateMovie(id: number, input: MovieInput) {
 }
 
 export async function deleteMovie(id: number) {
+  await requireAdmin()
   await db.delete(movies).where(eq(movies.id, id))
   revalidatePath("/")
   revalidatePath("/admin")
 }
 
 export async function getSeriesAdmin(movieId: number) {
+  await requireAdmin()
   const rows = await db
     .select({ season: seasons, episode: episodes })
     .from(seasons)
@@ -203,16 +210,19 @@ export type EpisodeInput = {
 }
 
 export async function createSeason(input: SeasonInput) {
+  await requireAdmin()
   await db.insert(seasons).values({ movieId: input.movieId, seasonNumber: input.seasonNumber, title: input.title || null })
   revalidatePath("/admin")
 }
 
 export async function deleteSeason(id: number) {
+  await requireAdmin()
   await db.delete(seasons).where(eq(seasons.id, id))
   revalidatePath("/admin")
 }
 
 export async function createEpisode(input: EpisodeInput) {
+  await requireAdmin()
   await db.insert(episodes).values({
     seasonId: input.seasonId,
     episodeNumber: input.episodeNumber,
@@ -226,6 +236,7 @@ export async function createEpisode(input: EpisodeInput) {
 }
 
 export async function updateEpisode(id: number, input: EpisodeInput) {
+  await requireAdmin()
   await db.update(episodes).set({
     episodeNumber: input.episodeNumber,
     title: input.title,
@@ -238,6 +249,7 @@ export async function updateEpisode(id: number, input: EpisodeInput) {
 }
 
 export async function deleteEpisode(id: number) {
+  await requireAdmin()
   await db.delete(episodes).where(eq(episodes.id, id))
   revalidatePath("/admin")
 }

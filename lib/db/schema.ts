@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, serial, integer } from "drizzle-orm/pg-core"
+import { index, pgTable, text, timestamp, boolean, serial, integer, uniqueIndex } from "drizzle-orm/pg-core"
 
 // ---------- Better Auth tables ----------
 export const user = pgTable("user", {
@@ -7,49 +7,71 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("emailVerified").notNull().default(false),
   image: text("image"),
+  username: text("username").unique(),
+  displayUsername: text("displayUsername"),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 })
 
-export const session = pgTable("session", {
-  id: text("id").primaryKey(),
-  expiresAt: timestamp("expiresAt").notNull(),
-  token: text("token").notNull().unique(),
-  createdAt: timestamp("createdAt").notNull().defaultNow(),
-  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
-  ipAddress: text("ipAddress"),
-  userAgent: text("userAgent"),
-  userId: text("userId")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-})
+export const session = pgTable(
+  "session",
+  {
+    id: text("id").primaryKey(),
+    expiresAt: timestamp("expiresAt").notNull(),
+    token: text("token").notNull().unique(),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+    ipAddress: text("ipAddress"),
+    userAgent: text("userAgent"),
+    userId: text("userId")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+  },
+  (table) => ({
+    userIdIndex: index("session_user_id_idx").on(table.userId),
+  }),
+)
 
-export const account = pgTable("account", {
-  id: text("id").primaryKey(),
-  accountId: text("accountId").notNull(),
-  providerId: text("providerId").notNull(),
-  userId: text("userId")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  accessToken: text("accessToken"),
-  refreshToken: text("refreshToken"),
-  idToken: text("idToken"),
-  accessTokenExpiresAt: timestamp("accessTokenExpiresAt"),
-  refreshTokenExpiresAt: timestamp("refreshTokenExpiresAt"),
-  scope: text("scope"),
-  password: text("password"),
-  createdAt: timestamp("createdAt").notNull().defaultNow(),
-  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
-})
+export const account = pgTable(
+  "account",
+  {
+    id: text("id").primaryKey(),
+    issuer: text("issuer").notNull(),
+    accountId: text("accountId").notNull(),
+    providerId: text("providerId").notNull(),
+    userId: text("userId")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    accessToken: text("accessToken"),
+    refreshToken: text("refreshToken"),
+    idToken: text("idToken"),
+    accessTokenExpiresAt: timestamp("accessTokenExpiresAt"),
+    refreshTokenExpiresAt: timestamp("refreshTokenExpiresAt"),
+    scope: text("scope"),
+    password: text("password"),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+  },
+  (table) => ({
+    issuerAccountUnique: uniqueIndex("account_issuer_account_id_unique").on(table.issuer, table.accountId),
+    userIdIndex: index("account_user_id_idx").on(table.userId),
+  }),
+)
 
-export const verification = pgTable("verification", {
-  id: text("id").primaryKey(),
-  identifier: text("identifier").notNull(),
-  value: text("value").notNull(),
-  expiresAt: timestamp("expiresAt").notNull(),
-  createdAt: timestamp("createdAt").notNull().defaultNow(),
-  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
-})
+export const verification = pgTable(
+  "verification",
+  {
+    id: text("id").primaryKey(),
+    identifier: text("identifier").notNull(),
+    value: text("value").notNull(),
+    expiresAt: timestamp("expiresAt").notNull(),
+    createdAt: timestamp("createdAt").notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+  },
+  (table) => ({
+    identifierIndex: index("verification_identifier_idx").on(table.identifier),
+  }),
+)
 
 // ---------- App tables ----------
 export const categories = pgTable("categories", {
@@ -99,6 +121,27 @@ export const episodes = pgTable("episodes", {
   views: integer("views").notNull().default(0),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
 })
+
+export const analyticsEvents = pgTable(
+  "analytics_event",
+  {
+    id: serial("id").primaryKey(),
+    eventId: text("event_id").notNull().unique(),
+    visitorHash: text("visitor_hash").notNull(),
+    eventType: text("event_type").notNull(),
+    path: text("path").notNull(),
+    mediaId: text("media_id"),
+    mediaType: text("media_type"),
+    mediaTitle: text("media_title"),
+    durationSeconds: integer("duration_seconds").notNull().default(0),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    typeTimeIndex: index("analytics_event_type_time_idx").on(table.eventType, table.occurredAt),
+    visitorTimeIndex: index("analytics_event_visitor_time_idx").on(table.visitorHash, table.occurredAt),
+    mediaTimeIndex: index("analytics_event_media_time_idx").on(table.mediaId, table.occurredAt),
+  }),
+)
 
 export type Movie = typeof movies.$inferSelect
 export type Category = typeof categories.$inferSelect
