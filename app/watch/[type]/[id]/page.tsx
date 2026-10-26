@@ -1,8 +1,7 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, Clapperboard } from "lucide-react"
+import { Clapperboard } from "lucide-react"
+import { HistoryBackButton } from "@/components/history-back-button"
 import { getImdbId, getTmdbTitle, tmdbImage, tmdbTitle } from "@/lib/tmdb"
-import { Button } from "@/components/ui/button"
 import { MovieWatchPlayer } from "@/components/tmdb-watch-player"
 
 export const dynamic = "force-dynamic"
@@ -35,10 +34,7 @@ export default async function TmdbWatchPage({ params, searchParams }: WatchPageP
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 md:px-8 md:py-8">
-        <Button render={<Link href="/catalog" />} nativeButton={false} variant="ghost" className="w-fit gap-2 px-0">
-          <ArrowLeft data-icon="inline-start" />
-          Back to catalog
-        </Button>
+        <HistoryBackButton fallbackHref="/" label="Back" />
 
         <section className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-2xl" aria-label={`${name} video player`}>
           <MovieWatchPlayer

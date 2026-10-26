@@ -26,7 +26,7 @@ function positiveInteger(value: number | undefined, fallback: number) {
   return Number.isInteger(value) && value && value > 0 ? value : fallback
 }
 
-function buildEmbedUrl({ type, tmdbId, season, episode }: TmdbWatchPlayerProps & { season: number; episode: number }) {
+function buildEmbedUrl({ type, tmdbId, season, episode }: Pick<TmdbWatchPlayerProps, "type" | "tmdbId" | "imdbId"> & { season: number; episode: number }) {
   const id = encodeURIComponent(String(tmdbId))
 
   if (type === "movie") {
