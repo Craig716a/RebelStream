@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { ChevronDown, ChevronLeft, ChevronRight, ListVideo, RotateCcw, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { WatchAnalyticsTracker } from "@/components/watch-analytics-tracker"
 
 type WatchHistory = {
   season?: number
@@ -113,6 +114,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
 
   return (
     <div className="flex w-full flex-col gap-3">
+      <WatchAnalyticsTracker type={type} tmdbId={tmdbId} title={title} />
       <div ref={playerRef} className="relative aspect-video min-h-[240px] w-full overflow-hidden bg-black">
         <iframe
           key={`${type}-${tmdbId}-${season}-${episode}-${embedUrl}`}
