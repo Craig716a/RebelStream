@@ -12,6 +12,29 @@ export function SiteHeader(_props?: { categories?: unknown[] }) {
   const [scrolled, setScrolled] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState(params.get("q") ?? "")
+  const [searchHistory, setSearchHistory] = useState<string[]>([])
+
+  function readSearchHistory() {
+    const value = document.cookie
+      .split("; ")
+      .find((cookie) => cookie.startsWith("rebelstream-search-history="))
+      ?.split("=")[1]
+
+    if (!value) return []
+
+    try {
+      const history = JSON.parse(decodeURIComponent(value))
+      return Array.isArray(history) ? history.filter((item): item is string => typeof item === "string") : []
+    } catch {
+      return []
+    }
+  }
+
+  function saveSearch(term: string) {
+    const nextHistory = [term, ...readSearchHistory().filter((item) => item.toLowerCase() !== term.toLowerCase())].slice(0, 10)
+    document.cookie = `rebelstream-search-history=${encodeURIComponent(JSON.stringify(nextHistory))}; Path=/; Max-Age=31536000; SameSite=Lax`
+    setSearchHistory(nextHistory)
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -22,7 +45,23 @@ export function SiteHeader(_props?: { categories?: unknown[] }) {
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (query.trim()) router.push(`/search?q=${encodeURIComponent(query.trim())}`)
+    const term = query.trim()
+    if (!term) return
+    saveSearch(term)
+    router.push(`/search?q=${encodeURIComponent(term)}`)
+    setSearchOpen(false)
+  }
+
+  function openSearch() {
+    setSearchHistory(readSearchHistory())
+    setSearchOpen(true)
+  }
+
+  function chooseSearch(term: string) {
+    setQuery(term)
+    saveSearch(term)
+    router.push(`/search?q=${encodeURIComponent(term)}`)
+    setSearchOpen(false)
   }
 
   return (
@@ -47,7 +86,7 @@ export function SiteHeader(_props?: { categories?: unknown[] }) {
               "flex min-w-0 w-full items-center overflow-hidden rounded-md border border-border bg-black/60 px-2 transition-all duration-300 md:w-9 md:border-transparent md:bg-transparent md:px-0",
               searchOpen && "md:w-64 md:border-border md:bg-black/60 md:px-2",
             )}>
-              <button type="button" aria-label="Search" onClick={() => setSearchOpen((v) => !v)} className="grid h-9 w-9 shrink-0 place-items-center text-foreground">
+              <button type="button" aria-label="Search" onClick={() => (searchOpen ? setSearchOpen(false) : openSearch())} className="grid h-9 w-9 shrink-0 place-items-center text-foreground">
                 <Search className="h-5 w-5" />
               </button>
               <input
@@ -65,6 +104,17 @@ export function SiteHeader(_props?: { categories?: unknown[] }) {
                 </button>
               )}
             </div>
+            {searchOpen && searchHistory.length > 0 && (
+              <div className="absolute right-4 top-14 z-50 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-border bg-background p-2 shadow-xl md:right-8 md:w-64">
+                <p className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Recent searches</p>
+                {searchHistory.map((term) => (
+                  <button key={term} type="button" onClick={() => chooseSearch(term)} className="block w-full truncate rounded-md px-2 py-2 text-left text-sm hover:bg-muted">
+                    {term}
+                  </button>
+                ))}
+              </div>
+            )}
+
           </form>
         </div>
       </div>
