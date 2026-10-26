@@ -15,6 +15,9 @@ export const metadata: Metadata = {
   },
   description: 'Discover free movies and TV shows on Rebel Stream with rich details, seasons, and episodes.',
   keywords: ['free movies', 'free TV shows', 'watch movies online', 'watch TV series online', 'Rebel Stream'],
+  other: {
+    '53fee8cf57eddf67a6972d9db3552553b6f3b1a6': '53fee8cf57eddf67a6972d9db3552553b6f3b1a6',
+  },
   applicationName: 'Rebel Stream',
   alternates: { canonical: '/' },
   openGraph: {
