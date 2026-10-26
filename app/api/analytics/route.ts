@@ -20,6 +20,30 @@ function isExcludedPath(path: string) {
   return path.startsWith("/admin") || path.startsWith("/api") || path === "/sign-in" || path === "/sign-up"
 }
 
+function getTrustedOrigins() {
+  const origins = new Set<string>()
+  const addOrigin = (value?: string) => {
+    if (!value) return
+    try {
+      origins.add(new URL(value.includes("://") ? value : `https://${value}`).origin)
+    } catch {}
+  }
+
+  addOrigin(process.env.BETTER_AUTH_URL)
+  if (process.env.NODE_ENV === "development") {
+    origins.add("http://localhost:3000")
+    addOrigin(process.env.V0_RUNTIME_URL)
+    addOrigin(process.env.V0_DEV_APP_URL)
+    addOrigin(process.env.V0_BUILD_URL)
+    addOrigin(process.env.V0_SANDBOX_URL)
+  } else {
+    addOrigin(process.env.VERCEL_URL)
+    addOrigin(process.env.VERCEL_PROJECT_PRODUCTION_URL)
+  }
+
+  return origins
+}
+
 function emptyResponse(status = 204) {
   return new NextResponse(null, { status, headers: { "Cache-Control": "no-store" } })
 }
@@ -28,7 +52,7 @@ export async function POST(request: NextRequest) {
   if (request.headers.get("dnt") === "1") return emptyResponse()
 
   const origin = request.headers.get("origin")
-  if (origin && origin !== request.nextUrl.origin) return emptyResponse(403)
+  if (origin && origin !== request.nextUrl.origin && !getTrustedOrigins().has(origin)) return emptyResponse(403)
   if (request.headers.get("sec-fetch-site") === "cross-site") return emptyResponse(403)
 
   const contentLength = Number(request.headers.get("content-length") ?? 0)
