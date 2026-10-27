@@ -10,13 +10,13 @@ export function AdminSignOut() {
 
   async function onSignOut() {
     await authClient.signOut()
-    router.push("/sign-in")
+    router.replace("/admin-login")
     router.refresh()
   }
 
   return (
     <Button variant="secondary" size="sm" onClick={onSignOut} className="gap-2">
-      <LogOut className="h-4 w-4" /> Sign out
+      <LogOut data-icon="inline-start" /> Sign out
     </Button>
   )
 }

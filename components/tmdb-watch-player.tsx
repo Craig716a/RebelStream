@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { ChevronDown, ChevronLeft, ChevronRight, ListVideo, RotateCcw, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { WatchAnalyticsTracker } from "@/components/watch-analytics-tracker"
 
 type WatchHistory = {
   season?: number
@@ -41,7 +42,7 @@ function positiveInteger(value: number | undefined, fallback: number) {
   return Number.isInteger(value) && value && value > 0 ? value : fallback
 }
 
-function buildEmbedUrl({ type, tmdbId, season, episode }: TmdbWatchPlayerProps & { season: number; episode: number }) {
+function buildEmbedUrl({ type, tmdbId, season, episode }: Pick<TmdbWatchPlayerProps, "type" | "tmdbId" | "imdbId"> & { season: number; episode: number }) {
   const id = encodeURIComponent(String(tmdbId))
 
   if (type === "movie") {
@@ -198,6 +199,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
 
   return (
     <div className="flex w-full flex-col gap-3">
+      <WatchAnalyticsTracker type={type} tmdbId={tmdbId} title={title} />
       <div ref={playerRef} className="relative aspect-video min-h-[240px] w-full overflow-hidden bg-black">
         <iframe
           key={`${type}-${tmdbId}-${season}-${episode}-${embedUrl}`}

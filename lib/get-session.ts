@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth"
+import { ADMIN_USERNAME } from "@/lib/admin-config"
 import { headers } from "next/headers"
 
 export async function getSession() {
@@ -7,6 +8,6 @@ export async function getSession() {
 
 export async function requireAdmin() {
   const session = await getSession()
-  if (!session?.user || session.user.email.toLowerCase() !== "craigbt33@gmail.com") throw new Error("Unauthorized")
+  if (!session?.user || session.user.username?.toLowerCase() !== ADMIN_USERNAME) throw new Error("Unauthorized")
   return session.user
 }

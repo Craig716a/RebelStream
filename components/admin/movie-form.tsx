@@ -45,7 +45,7 @@ export function MovieForm({
 }: {
   categories: Category[]
   movie?: MovieRow & Partial<MovieInput>
-  trigger?: React.ReactNode
+  trigger?: React.ReactElement
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
