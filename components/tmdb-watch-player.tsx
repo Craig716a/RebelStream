@@ -210,7 +210,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
           allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
           allowFullScreen
           loading="eager"
-          referrerPolicy="strict-origin-when-cross-origin"
+          referrerPolicy="no-referrer"
         />
         {type !== "movie" && (
           <Button type="button" variant="secondary" size="sm" className="absolute right-16 top-3 gap-2 bg-background/90 shadow-lg backdrop-blur-sm hover:bg-background" aria-expanded={drawerOpen} aria-controls="episode-drawer" onClick={() => setDrawerOpen((open) => !open)}>
