@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { ChevronDown, ChevronLeft, ChevronRight, ExternalLink, ListVideo, RotateCcw, X } from "lucide-react"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { ChevronDown, ChevronLeft, ChevronRight, ListVideo, RotateCcw, X } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { WatchAnalyticsTracker } from "@/components/watch-analytics-tracker"
 
 type WatchHistory = {
@@ -283,21 +283,6 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
         </aside>
       )}
 
-      <div className="flex justify-end">
-        <a
-          href={embedUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={buttonVariants({
-            variant: "secondary",
-            size: "sm",
-            className: "gap-2 bg-background/90 shadow-lg backdrop-blur-sm hover:bg-background",
-          })}
-        >
-          <ExternalLink data-icon="inline-start" />
-          Open in new tab
-        </a>
-      </div>
     </div>
   )
 }
