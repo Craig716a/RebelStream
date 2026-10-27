@@ -22,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   add("/search", "weekly", 0.7)
   add("/watch/movies", "daily", 0.9)
   add("/watch/tv", "daily", 0.9)
-  for (const genre of genres) add(`/watch/${slugifyTitle(genre.name)}`, "daily", 0.75)
+  for (const genre of genres) add(`/watch/genre/${slugifyTitle(genre.name)}`, "daily", 0.75)
   for (const title of [...movies, ...shows]) add(tmdbWatchPath(title), "weekly", 0.65)
 
   return [...urls.values()].slice(0, 100)
