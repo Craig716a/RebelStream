@@ -212,35 +212,20 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
           loading="eager"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
-          <a
-            href={embedUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={buttonVariants({
-              variant: "secondary",
-              size: "sm",
-              className: "gap-2 bg-background/90 shadow-lg backdrop-blur-sm hover:bg-background",
-            })}
+        {type !== "movie" && (
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="absolute right-3 top-3 gap-2 bg-background/90 shadow-lg backdrop-blur-sm hover:bg-background"
+            aria-expanded={drawerOpen}
+            aria-controls="episode-drawer"
+            onClick={() => setDrawerOpen((open) => !open)}
           >
-            <ExternalLink data-icon="inline-start" />
-            Open in new tab
-          </a>
-          {type !== "movie" && (
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="gap-2 bg-background/90 shadow-lg backdrop-blur-sm hover:bg-background"
-              aria-expanded={drawerOpen}
-              aria-controls="episode-drawer"
-              onClick={() => setDrawerOpen((open) => !open)}
-            >
-              <ListVideo data-icon="inline-start" />
-              Episodes
-            </Button>
-          )}
-        </div>
+            <ListVideo data-icon="inline-start" />
+            Episodes
+          </Button>
+        )}
         {adOpen && (
           <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/95 p-4" role="dialog" aria-modal="true" aria-label="Advertisement">
             <div className="relative aspect-video w-full max-w-4xl overflow-hidden rounded-lg bg-black">
@@ -297,6 +282,22 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
           </div>
         </aside>
       )}
+
+      <div className="flex justify-end">
+        <a
+          href={embedUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={buttonVariants({
+            variant: "secondary",
+            size: "sm",
+            className: "gap-2 bg-background/90 shadow-lg backdrop-blur-sm hover:bg-background",
+          })}
+        >
+          <ExternalLink data-icon="inline-start" />
+          Open in new tab
+        </a>
+      </div>
     </div>
   )
 }
