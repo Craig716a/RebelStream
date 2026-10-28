@@ -122,7 +122,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
           allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
           allowFullScreen
           loading="eager"
-          referrerPolicy="no-referrer"
+          referrerPolicy="strict-origin-when-cross-origin"
         />
         {type !== "movie" && (
           <Button
