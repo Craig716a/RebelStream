@@ -23,21 +23,6 @@ type TmdbWatchPlayerProps = {
   episodeCounts?: Record<number, number>
 }
 
-type FluidPlayerInstance = {
-  destroy?: () => void
-}
-
-type FluidPlayerFactory = (videoId: string, options: Record<string, unknown>) => FluidPlayerInstance
-
-declare global {
-  interface Window {
-    fluidPlayer?: FluidPlayerFactory
-  }
-}
-
-const VAST_TAG_URL = "https://nautical-hand.com/dEmiFIzHd.GYNavmZYG/UD/-egm/9/uRZXUqlwkDPCT/cd1PN/TLQlwsMqDwU_tJNKzLU/1bN/DJAcw/O/Qv"
-const MIDROLL_INTERVAL_MS = 600_000
-
 function positiveInteger(value: number | undefined, fallback: number) {
   return Number.isInteger(value) && value && value > 0 ? value : fallback
 }
@@ -62,80 +47,8 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
   const [drawerOpen, setDrawerOpen] = useState(false)
   const historyKey = `${type}:${tmdbId}`
   const hasExplicitEpisode = initialSeason !== undefined || initialEpisode !== undefined
-  const playerRef = useRef<HTMLDivElement>(null)
   const historyLoadedRef = useRef(hasExplicitEpisode)
-  const iframeRef = useRef<HTMLIFrameElement>(null)
-  const adVideoRef = useRef<HTMLVideoElement>(null)
-  const adPlayerRef = useRef<FluidPlayerInstance | null>(null)
-  const adTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const [adOpen, setAdOpen] = useState(false)
   const embedUrl = useMemo(() => buildEmbedUrl({ type, tmdbId, imdbId, season, episode }), [type, tmdbId, imdbId, season, episode])
-
-  function sendPlayerEvent(event: "pause" | "play") {
-    iframeRef.current?.contentWindow?.postMessage(JSON.stringify({ event }), "*")
-  }
-
-  function closeMidroll() {
-    adPlayerRef.current?.destroy?.()
-    adPlayerRef.current = null
-    setAdOpen(false)
-    sendPlayerEvent("play")
-  }
-
-  function openMidroll() {
-    if (adOpen) return
-    sendPlayerEvent("pause")
-    setAdOpen(true)
-  }
-
-  useEffect(() => {
-    adTimerRef.current = setInterval(openMidroll, MIDROLL_INTERVAL_MS)
-    return () => {
-      if (adTimerRef.current) clearInterval(adTimerRef.current)
-      adTimerRef.current = null
-      adPlayerRef.current?.destroy?.()
-      adPlayerRef.current = null
-    }
-  }, [adOpen])
-
-  useEffect(() => {
-    if (!adOpen || !adVideoRef.current) return
-    let cancelled = false
-    const scriptId = "fluid-player-vast-script"
-
-    function initializeFluidPlayer() {
-      if (cancelled || !adVideoRef.current || !window.fluidPlayer) return
-      adPlayerRef.current?.destroy?.()
-      adPlayerRef.current = window.fluidPlayer(adVideoRef.current.id, {
-        layoutControls: { autoPlay: true, fillToContainer: true },
-        vastOptions: {
-          adList: [{ roll: "preRoll", vastTag: VAST_TAG_URL }],
-          vastVideoEndedCallback: closeMidroll,
-          vastVideoSkippedCallback: closeMidroll,
-          noVastVideoCallback: closeMidroll,
-        },
-      })
-    }
-
-    const existingScript = document.getElementById(scriptId) as HTMLScriptElement | null
-    if (window.fluidPlayer) initializeFluidPlayer()
-    else if (existingScript) existingScript.addEventListener("load", initializeFluidPlayer, { once: true })
-    else {
-      const script = document.createElement("script")
-      script.id = scriptId
-      script.src = "https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js"
-      script.async = true
-      script.onload = initializeFluidPlayer
-      document.head.appendChild(script)
-    }
-
-    return () => {
-      cancelled = true
-      existingScript?.removeEventListener("load", initializeFluidPlayer)
-      adPlayerRef.current?.destroy?.()
-      adPlayerRef.current = null
-    }
-  }, [adOpen])
 
   useEffect(() => {
     if (hasExplicitEpisode) return
@@ -200,10 +113,9 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
   return (
     <div className="flex w-full flex-col gap-3">
       <WatchAnalyticsTracker type={type} tmdbId={tmdbId} title={title} />
-      <div ref={playerRef} className="relative aspect-video min-h-[240px] w-full overflow-hidden bg-black">
+      <div className="relative aspect-video min-h-[240px] w-full overflow-hidden bg-black">
         <iframe
           key={`${type}-${tmdbId}-${season}-${episode}-${embedUrl}`}
-          ref={iframeRef}
           src={embedUrl}
           title={`${title} ${type === "movie" ? "movie" : `season ${season} episode ${episode}`} player`}
           className="absolute inset-0 size-full border-0"
@@ -226,18 +138,7 @@ export function MovieWatchPlayer({ type, tmdbId, title, imdbId, initialSeason, i
             Episodes
           </Button>
         )}
-        {adOpen && (
-          <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/95 p-4" role="dialog" aria-modal="true" aria-label="Advertisement">
-            <div className="relative aspect-video w-full max-w-4xl overflow-hidden rounded-lg bg-black">
-              <video id="rebel-stream-midroll-ad" ref={adVideoRef} className="size-full" playsInline autoPlay controls aria-label="Advertisement" />
-            </div>
-          </div>
-        )}
       </div>
-
-      <aside className="flex min-h-16 items-center justify-center rounded-lg border border-border/60 bg-muted/30 px-4 py-3 text-center text-xs text-muted-foreground" aria-label="Advertisement">
-        <span>Advertisement</span>
-      </aside>
 
       {type !== "movie" && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 bg-card/70 px-3 py-2 text-sm">
