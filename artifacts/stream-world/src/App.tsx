@@ -471,10 +471,12 @@ function PlayerPage() {
   const episodeQuery = useGetSeasonDetails('tv', id, seasonNumber, { query: { enabled: mediaType === 'tv', queryKey: getGetSeasonDetailsQueryKey('tv', id, seasonNumber) } });
   const title = details.data;
   const episode = episodeQuery.data?.episodes?.find(ep => ep.episodeNumber === episodeNumber);
-  const trailerKey = title?.trailerKey;
+  const playerUrl = mediaType === 'tv'
+    ? `https://vidly.pro/tv/${id}/${seasonNumber}/${episodeNumber}`
+    : `https://vidly.pro/movie/${id}`;
   return <div className="player-page"><div className="player-top"><Link href={title ? `/title/${mediaType}/${id}` : '/'} className="player-back" {...test('link-player-back')}><ArrowLeft size={18} /> Back to title</Link><span>REBELSTREAM / PLAYER</span></div>
-    <div className="player-frame">{details.isLoading ? <div className="player-loading"><div /><span>Loading title information</span></div> : trailerKey ? <iframe src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(trailerKey)}?autoplay=0&rel=0`} title={title?.trailerName || `${title?.title} official trailer`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen {...test('iframe-official-trailer')} /> : <div className="player-empty"><span className="player-play"><Play size={26} fill="currentColor" /></span><span className="eyebrow">TRAILER NOT AVAILABLE</span><h2>No official trailer found</h2><p>TMDb provides metadata and official trailer references, not full episode streams.</p></div>}</div>
-     <div className="player-caption"><div><span className="eyebrow">{mediaType === 'tv' ? `SEASON ${seasonNumber} · EPISODE ${episodeNumber}` : 'OFFICIAL TRAILER'}</span><h1>{episode?.name || title?.title || 'Loading…'}</h1><p>{title?.title}{title?.trailerName && ` · ${title.trailerName}`}</p></div><div className="player-notice"><Video size={16} /><span>Full episode playback is not supplied by TMDb. This player shows an official trailer when one is available.{trailerKey && <a href={`https://www.youtube.com/watch?v=${encodeURIComponent(trailerKey)}`} target="_blank" rel="noreferrer" {...test('link-player-official-trailer')}>If unavailable in your region, watch on YouTube <ChevronRight size={12} /></a>}</span></div></div>
+    <div className="player-frame">{details.isLoading ? <div className="player-loading"><div /><span>Loading title information</span></div> : <iframe src={playerUrl} title={title?.title || 'Video player'} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen {...test('iframe-vidly-player')} />}</div>
+     <div className="player-caption"><div><span className="eyebrow">{mediaType === 'tv' ? `SEASON ${seasonNumber} · EPISODE ${episodeNumber}` : 'OFFICIAL TRAILER'}</span><h1>{episode?.name || title?.title || 'Loading…'}</h1><p>{title?.title}{title?.trailerName && ` · ${title.trailerName}`}</p></div><div className="player-notice"><Video size={16} /><span>Playback provided by Vidly.</span></div></div>
   </div>;
 }
 
