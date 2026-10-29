@@ -27,6 +27,14 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --no-frozen-lockfile
+      - name: Verify TMDb API secret
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+        run: |
+          if [ -z "$TMDB_API_KEY" ]; then
+            echo "::error::Add the TMDB_API_KEY Actions secret so GitHub Pages can load titles."
+            exit 1
+          fi
       - name: Build
         working-directory: artifacts/stream-world
         env:
