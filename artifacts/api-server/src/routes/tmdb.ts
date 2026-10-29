@@ -1,8 +1,8 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import type { Logger } from "pino";
 import {
   GetCatalogQueryParams,
   GetCatalogResponse,
+  GetAnimeMalIdResponse,
   GetTodayQueryParams,
   GetProviderCatalogQueryParams,
   GetProviderCatalogResponse,
@@ -24,7 +24,6 @@ import { getTmdb, TmdbError } from "../lib/tmdb";
 
 const router: IRouter = Router();
 type JsonRecord = Record<string, unknown>;
-type RequestWithLogger = Request & { log: Logger };
 
 function record(value: unknown): JsonRecord {
   return value !== null && typeof value === "object"
@@ -131,10 +130,6 @@ function mapTitle(value: unknown, type: MediaType): JsonRecord {
       return score(b) - score(a);
     })[0];
   const credits = record(title.credits);
-  const director = array(credits.crew).map(record).find((person) => person.job === "Director");
-  const creatorNames = array(title.created_by)
-    .map((person) => string(record(person).name))
-    .filter(Boolean);
   const lastEpisode = record(title.last_episode_to_air);
   const runtimeValue = title.runtime ?? array(title.episode_run_time)[0];
 
@@ -146,8 +141,6 @@ function mapTitle(value: unknown, type: MediaType): JsonRecord {
     posterPath: nullableString(title.poster_path),
     backdropPath: nullableString(title.backdrop_path),
     voteAverage: number(title.vote_average),
-    voteCount: Math.max(0, Math.trunc(number(title.vote_count))),
-    originalLanguage: string(title.original_language, "en"),
     releaseDate: nullableString(title.release_date ?? title.first_air_date),
     trailerKey: nullableString(trailer?.key),
     trailerName: nullableString(trailer?.name),
@@ -160,9 +153,54 @@ function mapTitle(value: unknown, type: MediaType): JsonRecord {
     status: nullableString(title.status),
     seasons: array(title.seasons).map(mapSeasonSummary),
     cast: array(credits.cast).slice(0, 12).map(mapCast),
-    director: nullableString(director?.name),
-    creatorNames,
   };
+}
+
+type AnimeMalIdCacheEntry = {
+  expiresAt: number;
+  malId: number | null;
+};
+
+const animeMalIdCache = new Map<string, AnimeMalIdCacheEntry>();
+
+async function resolveAnimeMalId(tmdbId: number): Promise<number | null> {
+  const cacheKey = String(tmdbId);
+  const cached = animeMalIdCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.malId;
+
+  try {
+    const query = `SELECT DISTINCT ?malId WHERE {
+      ?series wdt:P4983 "${tmdbId}" ;
+        wdt:P4086 ?malId .
+    } LIMIT 10`;
+    const url = new URL("https://query.wikidata.org/sparql");
+    url.searchParams.set("query", query);
+    url.searchParams.set("format", "json");
+    const response = await fetch(url, {
+      headers: {
+        Accept: "application/sparql-results+json",
+        "User-Agent": "StreamWorld/1.0 (TMDb to MyAnimeList ID mapping)",
+      },
+      signal: AbortSignal.timeout(5_000),
+    });
+    if (!response.ok) throw new Error(`Wikidata returned HTTP ${response.status}`);
+
+    const payload = record(await response.json());
+    const results = array(record(payload.results).bindings).map(record);
+    const malIds = [...new Set(results
+      .map((binding) => Number(record(binding.malId).value))
+      .filter((value) => Number.isSafeInteger(value) && value > 0))];
+    const malId = malIds.length === 1 ? malIds[0] : null;
+
+    animeMalIdCache.set(cacheKey, {
+      malId,
+      expiresAt: Date.now() + (malId ? 24 * 60 * 60_000 : 60 * 60_000),
+    });
+    return malId;
+  } catch (error) {
+    animeMalIdCache.set(cacheKey, { malId: null, expiresAt: Date.now() + 60_000 });
+    throw error;
+  }
 }
 
 function mapEpisode(value: unknown): JsonRecord {
@@ -229,7 +267,7 @@ function mapProviderRegion(iso: string, value: unknown): JsonRecord {
 
 function sendTmdbError(req: Request, res: Response, error: unknown): void {
   const status = error instanceof TmdbError ? error.status : 502;
-  (req as RequestWithLogger).log.warn({ status }, "TMDb request failed");
+  req.log.warn({ status }, "TMDb request failed");
 
   if (status === 404) {
     res.status(404).json({ error: "Title or season not found." });
@@ -424,6 +462,49 @@ router.get("/tmdb/provider-regions", async (req, res): Promise<void> => {
     sendTmdbError(req, res, error);
   }
 });
+
+router.get(
+  "/tmdb/title/:mediaType/:id/anime-mal-id",
+  async (req, res): Promise<void> => {
+    const parsed = GetTitleDetailsParams.safeParse(req.params);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+    const { id, mediaType: type } = parsed.data;
+
+    try {
+      if (type !== "tv") {
+        res.json(GetAnimeMalIdResponse.parse({ malId: null }));
+        return;
+      }
+
+      const raw = record(await getTmdb(`/tv/${id}`));
+      const isAnimated = array(raw.genres).some(
+        (genre) => number(record(genre).id) === 16,
+      );
+      if (!isAnimated) {
+        res.json(GetAnimeMalIdResponse.parse({ malId: null }));
+        return;
+      }
+
+      let malId: number | null = null;
+      try {
+        malId = await resolveAnimeMalId(
+          id,
+        );
+      } catch (error) {
+        req.log.warn(
+          { id, error: error instanceof Error ? error.message : String(error) },
+          "Wikidata MAL ID lookup unavailable",
+        );
+      }
+      res.json(GetAnimeMalIdResponse.parse({ malId }));
+    } catch (error) {
+      sendTmdbError(req, res, error);
+    }
+  },
+);
 
 router.get(
   "/tmdb/title/:mediaType/:id/season/:seasonNumber",

@@ -1,6 +1,3 @@
 {
-  "framework": "vite",
-  "installCommand": "pnpm install --no-frozen-lockfile",
-  "buildCommand": "pnpm --filter @workspace/stream-world run build",
   "outputDirectory": "artifacts/stream-world/dist/public"
 }

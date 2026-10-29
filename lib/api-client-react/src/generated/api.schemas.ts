@@ -68,6 +68,11 @@ export interface CastMember {
   profilePath: string | null;
 }
 
+export interface AnimeMalId {
+  /** @nullable */
+  malId: number | null;
+}
+
 export interface TitleDetails {
   id: number;
   mediaType: MediaType;
@@ -78,8 +83,6 @@ export interface TitleDetails {
   /** @nullable */
   backdropPath: string | null;
   voteAverage: number;
-  voteCount: number;
-  originalLanguage: string;
   /** @nullable */
   releaseDate: string | null;
   /** @nullable */
@@ -101,9 +104,6 @@ export interface TitleDetails {
   status: string | null;
   seasons: SeasonSummary[];
   cast: CastMember[];
-  /** @nullable */
-  director: string | null;
-  creatorNames: string[];
 }
 
 export interface Episode {
