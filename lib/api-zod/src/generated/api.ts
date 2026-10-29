@@ -211,6 +211,8 @@ export const GetTitleDetailsResponse = zod.object({
   "posterPath": zod.string().nullable(),
   "backdropPath": zod.string().nullable(),
   "voteAverage": zod.number(),
+  "voteCount": zod.number().int(),
+  "originalLanguage": zod.string(),
   "releaseDate": zod.string().nullable(),
   "trailerKey": zod.string().nullable(),
   "trailerName": zod.string().nullable(),
@@ -237,7 +239,9 @@ export const GetTitleDetailsResponse = zod.object({
   "name": zod.string(),
   "character": zod.string(),
   "profilePath": zod.string().nullable()
-}))
+})),
+  "director": zod.string().nullable(),
+  "creatorNames": zod.array(zod.string())
 })
 
 

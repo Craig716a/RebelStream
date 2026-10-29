@@ -78,6 +78,8 @@ export interface TitleDetails {
   /** @nullable */
   backdropPath: string | null;
   voteAverage: number;
+  voteCount: number;
+  originalLanguage: string;
   /** @nullable */
   releaseDate: string | null;
   /** @nullable */
@@ -99,6 +101,9 @@ export interface TitleDetails {
   status: string | null;
   seasons: SeasonSummary[];
   cast: CastMember[];
+  /** @nullable */
+  director: string | null;
+  creatorNames: string[];
 }
 
 export interface Episode {

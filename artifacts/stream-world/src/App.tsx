@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   useGetCatalog, useGetProviderCatalog, useGetProviderRegions, useGetSeasonDetails, useGetTitleDetails, useGetToday,
@@ -9,6 +9,10 @@ import {
 } from '@workspace/api-client-react';
 import type { CatalogMediaItem, MediaType, ProviderRegion, WatchProvider } from '@workspace/api-client-react';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { CuratedCollectionShelf } from '@/components/curated-collection-shelf';
+import { PageMetadata } from '@/components/page-metadata';
+import { TitleEditorial } from '@/components/title-editorial';
+import { TitleReactions } from '@/components/title-reactions';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
@@ -18,6 +22,8 @@ import {
   Share2, SlidersHorizontal, Star, UserRound, Video, X,
 } from 'lucide-react';
 import { Link, Route, Switch, useLocation, useParams, Router as WouterRouter } from 'wouter';
+import { curatedCollections, getCuratedCollection } from '@/lib/curated-collections';
+import { createTitleStructuredData, getTitleDescription } from '@/lib/editorial';
 
 const queryClient = new QueryClient();
 const POSTER = 'https://image.tmdb.org/t/p/w500';
@@ -181,12 +187,13 @@ function HomePage() {
       {koreanTitles.isLoading ? <LoadingGrid /> : koreanTitles.isError ? <QueryError retry={() => koreanTitles.refetch()} error={koreanTitles.error} /> : <div className="home-korean-grid">{(koreanTitles.data?.results || []).filter(item => item.posterPath).slice(0, 9).map(item => <PosterCard key={`${item.mediaType}-${item.id}`} item={item} />)}</div>}
     </div>}
     <div className="home-compact-section"><div className="section-toolbar"><h2>New today</h2></div>
-      {todayTitles.isLoading ? <div className="home-today-loading"><LoadingGrid /></div> : todayTitles.isError ? <QueryError retry={() => todayTitles.refetch()} error={todayTitles.error} /> : todayTitles.data?.results?.filter(item => item.posterPath).length ? <div className="home-today-grid">{todayTitles.data.results.filter(item => item.posterPath).slice(0, 9).map(item => <RecommendCard key={`${item.mediaType}-${item.id}`} item={item} badge={item.mediaType === 'tv' ? 'New episode' : 'New movie'} />)}</div> : <EmptyState title="Nothing new today" copy="New releases and episodes will appear here when they air." />}
+      {todayTitles.isLoading ? <div className="home-today-loading"><LoadingGrid /></div> : todayTitles.isError ? <QueryError retry={() => todayTitles.refetch()} error={todayTitles.error} /> : todayTitles.data?.results?.filter(item => item.posterPath).length ? <div className="home-today-grid">{todayTitles.data.results.filter((item: CatalogMediaItem) => item.posterPath).slice(0, 9).map((item: CatalogMediaItem) => <RecommendCard key={`${item.mediaType}-${item.id}`} item={item} badge={item.mediaType === 'tv' ? 'New episode' : 'New movie'} />)}</div> : <EmptyState title="Nothing new today" copy="New releases and episodes will appear here when they air." />}
     </div>
     <div className="home-related-section"><div className="section-toolbar"><h2>You may also like</h2></div>
-      {catalog.isLoading && homeTab !== 'Recommend' ? <LoadingGrid /> : <div className="you-may-like-grid">{(recommended.length ? recommended : trend.data?.results || []).slice(2 + (relatedPage % 2), 6 + (relatedPage % 2)).map((item, i) => <RecommendCard key={`${item.mediaType}-${item.id}`} item={item} episodeBadge={item.mediaType === 'tv' && i % 2 === 0} />)}</div>}
+      {catalog.isLoading && homeTab !== 'Recommend' ? <LoadingGrid /> : <div className="you-may-like-grid">{(recommended.length ? recommended : trend.data?.results || []).slice(2 + (relatedPage % 2), 6 + (relatedPage % 2)).map((item: CatalogMediaItem, i: number) => <RecommendCard key={`${item.mediaType}-${item.id}`} item={item} episodeBadge={item.mediaType === 'tv' && i % 2 === 0} />)}</div>}
       <div className="home-action-pair"><button onClick={changePicks} {...test('button-more-wonderful')}><ListFilter size={16} /> More Wonderful</button><button onClick={changePicks} {...test('button-change-recommendations')}><SlidersHorizontal size={16} /> Change</button></div>
     </div>
+    <CuratedCollectionShelf />
     <section className="home-streaming"><div className="section-toolbar"><h2>Streaming services</h2><Link href="/streaming" className="text-link" {...test('link-streaming-services')}>Explore <ChevronRight size={15} /></Link></div>
       <div className="provider-row">{providers.map((provider: WatchProvider) => <Link href={`/streaming/${provider.providerId}`} className="provider-tile" key={provider.providerId} {...test(`home-provider-${provider.providerId}`)} aria-label={`Browse ${provider.name}`} >{provider.logoPath ? <img src={posterUrl(provider.logoPath)} alt="" /> : <span className="provider-initial">{provider.name.slice(0, 1)}</span>}<span>{provider.name}</span></Link>)}</div>
     </section>
@@ -294,7 +301,100 @@ function CategoriesPage() {
     <div className="results-meta"><span>{result.data?.totalResults ? `${result.data.totalResults.toLocaleString()} titles` : 'Explore titles'}</span><span><ListFilter size={14} /> Sorted for you</span></div>
     {result.isLoading ? <LoadingGrid /> : result.isError ? <QueryError retry={() => result.refetch()} error={result.error} /> : <PosterGrid items={result.data?.results || []} className="category-grid" />}
     {result.data && result.data.totalPages > 1 && <div className="pagination"><button className="button-secondary" disabled={page <= 1} onClick={() => setPage(p => p - 1)} {...test('button-page-previous')}><ChevronLeft size={16} /> Previous</button><span>Page {page} of {Math.min(result.data.totalPages, 500)}</span><button className="button-secondary" disabled={page >= result.data.totalPages} onClick={() => setPage(p => p + 1)} {...test('button-page-next')}>Next <ChevronRight size={16} /></button></div>}
+    <CuratedCollectionShelf heading="Browse curated collections" />
   </div>;
+}
+
+function CuratedCollectionPage() {
+  const params = useParams<{ slug: string }>();
+  const [page, setPage] = useState(1);
+  const collection = getCuratedCollection(params.slug);
+  const requestParams = { ...(collection?.query ?? curatedCollections[0].query), page };
+  const result = useGetCatalog(requestParams, {
+    query: {
+      enabled: Boolean(collection),
+      queryKey: getGetCatalogQueryKey(requestParams),
+    },
+  });
+  const structuredData = useMemo(() => {
+    if (!collection || !result.data) return null;
+    return {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: collection.title,
+      description: collection.description,
+      mainEntity: {
+        "@type": "ItemList",
+        itemListElement: result.data.results.filter((item) => item.posterPath).map((item, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: item.title,
+          url: new URL(
+            `${import.meta.env.BASE_URL}title/${item.mediaType}/${item.id}`,
+            window.location.origin,
+          ).toString(),
+        })),
+      },
+    };
+  }, [collection, result.data]);
+
+  useEffect(() => setPage(1), [params.slug]);
+
+  if (!collection) {
+    return (
+      <div className="page-wrap">
+        <PageHeading title="Collection not found" />
+        <EmptyState title="This collection is unavailable" copy="Choose a collection from the discovery page." />
+        <CuratedCollectionShelf heading="Browse curated collections" />
+      </div>
+    );
+  }
+
+  const collectionImage = result.data?.results.find((item) => item.posterPath)?.posterPath;
+
+  return (
+    <div className="page-wrap collection-page">
+      <PageMetadata
+        title={`${collection.title} | RebelStream`}
+        description={collection.description}
+        image={collectionImage ? posterUrl(collectionImage) : undefined}
+        structuredData={structuredData}
+      />
+      <PageHeading
+        eyebrow={collection.eyebrow}
+        title={collection.title}
+        action={(
+          <Link href="/categories" className="icon-button" aria-label="Back to categories" {...test('link-collection-categories')}>
+            <ArrowLeft size={19} />
+          </Link>
+        )}
+      />
+      <p className="collection-intro">{collection.description}</p>
+      <div className="results-meta">
+        <span>{result.data?.totalResults ? `${result.data.totalResults.toLocaleString()} titles` : "Explore titles"}</span>
+        <span>Filtered by TMDb metadata</span>
+      </div>
+      {result.isLoading ? <LoadingGrid /> : result.isError ? (
+        <QueryError retry={() => result.refetch()} error={result.error} />
+      ) : result.data?.results.length ? (
+        <PosterGrid items={result.data.results} className="category-grid" />
+      ) : (
+        <EmptyState title="No titles in this collection yet" copy="The catalog will show matching titles when TMDb lists them." />
+      )}
+      {result.data && result.data.totalPages > 1 && (
+        <div className="pagination">
+          <button className="button-secondary" disabled={page <= 1} onClick={() => setPage((value) => value - 1)} {...test('button-collection-previous')}>
+            <ChevronLeft size={16} /> Previous
+          </button>
+          <span>Page {page} of {Math.min(result.data.totalPages, 500)}</span>
+          <button className="button-secondary" disabled={page >= result.data.totalPages} onClick={() => setPage((value) => value + 1)} {...test('button-collection-next')}>
+            Next <ChevronRight size={16} />
+          </button>
+        </div>
+      )}
+      <CuratedCollectionShelf heading="Keep exploring" />
+    </div>
+  );
 }
 
 function SharingPage() {
@@ -358,11 +458,11 @@ function LegacyTitlePage() {
   const [providerRegionCode, setProviderRegionCode] = useState('WW');
   const similar = useGetCatalog({ mediaType, genreId: title?.genres?.[0]?.id, sortBy: 'popularity.desc', page: 1 }, { query: { enabled: !!title, queryKey: getGetCatalogQueryKey({ mediaType, genreId: title?.genres?.[0]?.id, sortBy: 'popularity.desc', page: 1 }) } });
   const { favorites, toggleFavorite, addHistory } = useLocalData();
-  useEffect(() => { if (title) addHistory({ id: title.id, mediaType: title.mediaType, title: title.title, overview: title.overview, posterPath: title.posterPath, backdropPath: title.backdropPath, voteAverage: title.voteAverage, releaseDate: title.releaseDate, genreIds: title.genres.map(g => g.id), originalLanguage: '' }); }, [title?.id]);
+  useEffect(() => { if (title) addHistory({ id: title.id, mediaType: title.mediaType, title: title.title, overview: title.overview, posterPath: title.posterPath, backdropPath: title.backdropPath, voteAverage: title.voteAverage, releaseDate: title.releaseDate, genreIds: title.genres.map(g => g.id), originalLanguage: title.originalLanguage }); }, [title?.id]);
   const handlePlay = (seasonNumber = 1, episodeNumber = 1) => setLocation(`/player/${mediaType}/${id}/${seasonNumber}/${episodeNumber}`);
   if (details.isLoading) return <div className="page-wrap"><div className="hero-skeleton" /><div className="poster-skeleton" /></div>;
   if (details.isError || !title) return <div className="page-wrap"><QueryError retry={() => details.refetch()} error={details.error} /></div>;
-  const titleItem: CatalogMediaItem = { id: title.id, mediaType: title.mediaType, title: title.title, overview: title.overview, posterPath: title.posterPath, backdropPath: title.backdropPath, voteAverage: title.voteAverage, releaseDate: title.releaseDate, genreIds: title.genres.map(g => g.id), originalLanguage: '' };
+  const titleItem: CatalogMediaItem = { id: title.id, mediaType: title.mediaType, title: title.title, overview: title.overview, posterPath: title.posterPath, backdropPath: title.backdropPath, voteAverage: title.voteAverage, releaseDate: title.releaseDate, genreIds: title.genres.map(g => g.id), originalLanguage: title.originalLanguage };
   const watched = favorites.some(item => item.id === title.id);
   const regions = providerRegions.data as ProviderRegion[] | undefined;
   const currentRegion = regions?.find((r: ProviderRegion) => r.iso3166_1 === providerRegionCode);
@@ -392,13 +492,16 @@ function TitlePage() {
   const [selectedEpisode, setSelectedEpisode] = useState(1);
   const [audioTrack, setAudioTrack] = useState<'Original' | 'Dub'>('Original');
   const [trailerStartedForId, setTrailerStartedForId] = useState<number | null>(null);
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [feedback, setFeedback] = useState('');
-  const [feedbackSent, setFeedbackSent] = useState(false);
   const [regionCode, setRegionCode] = useState('WW');
   const validId = Number.isInteger(id) && id > 0;
   const detailsQuery = useGetTitleDetails(mediaType, id, { query: { enabled: validId, queryKey: getGetTitleDetailsQueryKey(mediaType, id) } });
   const title = detailsQuery.data;
+  const pageMetadata = useMemo(() => title ? {
+    title: `${title.title} | RebelStream`,
+    description: getTitleDescription(title.overview) || `Explore ${title.title} on RebelStream.`,
+    image: title.posterPath ? posterUrl(title.posterPath) : undefined,
+    structuredData: createTitleStructuredData(title, window.location.href.split('?')[0]),
+  } : null, [title]);
   const firstSeason = title?.seasons?.find(season => season.seasonNumber > 0)?.seasonNumber || 1;
   const selectedSeason = title?.seasons?.some(season => season.seasonNumber === seasonNumber) ? seasonNumber : firstSeason;
   const seasonQuery = useGetSeasonDetails('tv', id, selectedSeason, { query: { enabled: mediaType === 'tv' && validId, queryKey: getGetSeasonDetailsQueryKey('tv', id, selectedSeason) } });
@@ -408,12 +511,12 @@ function TitlePage() {
   const trailerStarted = trailerStartedForId === id;
   useEffect(() => {
     if (!title) return;
-    addHistory({ id: title.id, mediaType: title.mediaType, title: title.title, overview: title.overview, posterPath: title.posterPath, backdropPath: title.backdropPath, voteAverage: title.voteAverage, releaseDate: title.releaseDate, genreIds: title.genres.map(g => g.id), originalLanguage: '' });
+    addHistory({ id: title.id, mediaType: title.mediaType, title: title.title, overview: title.overview, posterPath: title.posterPath, backdropPath: title.backdropPath, voteAverage: title.voteAverage, releaseDate: title.releaseDate, genreIds: title.genres.map(g => g.id), originalLanguage: title.originalLanguage });
   }, [title?.id]);
   if (!validId) return <div className="page-wrap"><EmptyState title="Title unavailable" copy="This title link is not valid." /></div>;
   if (detailsQuery.isLoading) return <div className="title-page title-loading"><div className="title-trailer-skeleton" /><div className="poster-skeleton" /></div>;
   if (detailsQuery.isError || !title) return <div className="page-wrap"><QueryError retry={() => detailsQuery.refetch()} error={detailsQuery.error} /></div>;
-  const titleItem: CatalogMediaItem = { id: title.id, mediaType: title.mediaType, title: title.title, overview: title.overview, posterPath: title.posterPath, backdropPath: title.backdropPath, voteAverage: title.voteAverage, releaseDate: title.releaseDate, genreIds: title.genres.map(g => g.id), originalLanguage: '' };
+  const titleItem: CatalogMediaItem = { id: title.id, mediaType: title.mediaType, title: title.title, overview: title.overview, posterPath: title.posterPath, backdropPath: title.backdropPath, voteAverage: title.voteAverage, releaseDate: title.releaseDate, genreIds: title.genres.map(g => g.id), originalLanguage: title.originalLanguage };
   const favorite = favorites.some(item => item.id === title.id);
   const regions = providerQuery.data as ProviderRegion[] | undefined;
   const selectedRegion = regions?.find(region => region.iso3166_1 === regionCode);
@@ -434,6 +537,7 @@ function TitlePage() {
     )
     : selectedSeasonSummary?.episodeCount || 0;
   return <div className="title-page title-detail-page">
+    {pageMetadata && <PageMetadata {...pageMetadata} />}
     <section className="title-trailer">
       {title.trailerKey && trailerStarted
         ? <div className="trailer-embed-wrap"><iframe src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(title.trailerKey)}?autoplay=1&rel=0`} title={title.trailerName || `${title.title} official trailer`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen {...test('iframe-title-official-trailer')} /><a className="trailer-region-link" href={`https://www.youtube.com/watch?v=${encodeURIComponent(title.trailerKey)}`} target="_blank" rel="noreferrer" {...test('link-open-official-trailer')}>If unavailable in your region, open the official trailer on YouTube <ChevronRight size={13} /></a></div>
@@ -447,10 +551,8 @@ function TitlePage() {
       <p className="title-detail-meta" {...test('text-title-metadata')}>{yearOf(title.releaseDate)} <i /> {title.id} <i /> {title.genres.map(genre => genre.name).join('/') || 'Series'}</p>
       <div className="title-quick-actions">
         <button className={favorite ? 'quick-action selected' : 'quick-action'} onClick={() => toggleFavorite(titleItem)} {...test('button-toggle-favorite')}><Bookmark size={19} fill={favorite ? 'currentColor' : 'none'} /><span>Favorite</span></button>
-        <button className="quick-action" onClick={() => setFeedbackOpen(open => !open)} {...test('button-title-feedback')}><CircleHelp size={19} /><span>Feedback</span></button>
         <button className="quick-action" onClick={shareTitle} {...test('button-title-share')}><Share2 size={19} /><span>Share</span></button>
       </div>
-      {feedbackOpen && <form className="title-feedback" onSubmit={e => { e.preventDefault(); if (feedback.trim()) { setFeedbackSent(true); setFeedback(''); } }}><textarea value={feedback} onChange={e => setFeedback(e.target.value)} placeholder="Tell us what you think…" aria-label="Title feedback" {...test('input-title-feedback')} /><button type="submit" className="button-secondary" {...test('button-submit-title-feedback')}>{feedbackSent ? 'Sent' : 'Send feedback'}</button></form>}
       <div className="audio-track-row"><span>Language</span><div className="track-switch">{(['Original', 'Dub'] as const).map(track => <button key={track} className={audioTrack === track ? 'selected' : ''} onClick={() => setAudioTrack(track)} {...test(`button-audio-${track.toLowerCase()}`)}>{track}</button>)}</div></div>
       {audioTrack === 'Dub' && <p className="audio-note">Audio tracks are not supplied by TMDb; this setting is a preference only.</p>}
       {mediaType === 'tv' && <section className="episode-picker">
@@ -458,6 +560,7 @@ function TitlePage() {
           {seasonEpisodeCount > 0 && <span className="update-count">Update to {seasonEpisodeCount} <ChevronRight size={14} /></span>}</div>
         {seasonQuery.isLoading ? <div className="number-skeletons"><i /><i /><i /><i /><i /><i /></div> : seasonQuery.isError ? <QueryError retry={() => seasonQuery.refetch()} error={seasonQuery.error} /> : seasonQuery.data?.episodes?.length ? <div className="episode-number-grid" aria-label="Episodes; swipe horizontally to see more">{seasonQuery.data.episodes.map(ep => <button className={selectedEpisode === ep.episodeNumber ? 'episode-number-button selected' : 'episode-number-button'} key={ep.id} onClick={() => setSelectedEpisode(ep.episodeNumber)} aria-label={`Episode ${ep.episodeNumber}: ${ep.name}`} {...test(`button-episode-${ep.episodeNumber}`)}>{ep.episodeNumber}</button>)}</div> : <EmptyState title="No episodes listed" copy="Episode details will appear when available." />}
       </section>}
+      <TitleEditorial title={title} />
       <section className="similar-section title-more-like"><div className="section-toolbar"><h2>More Like This</h2><Link href="/categories" className="text-link" {...test('link-more-like-this')}>More <ChevronRight size={14} /></Link></div>
         {recommendations.isLoading ? <LoadingGrid /> : recommendations.isError ? <QueryError retry={() => recommendations.refetch()} error={recommendations.error} /> : <div className="horizontal-posters title-similar-row">{(recommendations.data?.results || []).filter(item => item.id !== id).slice(0, 8).map(item => <PosterCard key={item.id} item={item} />)}</div>}
       </section>
@@ -481,9 +584,10 @@ function PlayerPage() {
   const playerUrl = mediaType === 'tv'
     ? `https://embedmaster.link/tv/${id}/${seasonNumber}/${episodeNumber}`
     : `https://embedmaster.link/movie/${id}`;
-  return <div className="player-page"><div className="player-top"><Link href={title ? `/title/${mediaType}/${id}` : '/'} className="player-back" {...test('link-player-back')}><ArrowLeft size={18} /> Back to title</Link><span>REBELSTREAM / PLAYER</span></div>
+  return <div className="player-page">{title && <PageMetadata title={`${title.title} player | RebelStream`} description={`Player page for ${title.title} on RebelStream.`} image={title.posterPath ? posterUrl(title.posterPath) : undefined} />}<div className="player-top"><Link href={title ? `/title/${mediaType}/${id}` : '/'} className="player-back" {...test('link-player-back')}><ArrowLeft size={18} /> Back to title</Link><span>REBELSTREAM / PLAYER</span></div>
     <div className="player-frame">{details.isLoading ? <div className="player-loading"><div /><span>Loading title information</span></div> : <iframe src={playerUrl} title={title?.title || 'Video player'} sandbox="allow-scripts allow-same-origin allow-forms allow-presentation" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" referrerPolicy="no-referrer" allowFullScreen {...test('iframe-embedmaster-player')} />}</div>
      <div className="player-caption"><div><span className="eyebrow">{mediaType === 'tv' ? `SEASON ${seasonNumber} · EPISODE ${episodeNumber}` : 'MOVIE PLAYER'}</span><h1>{episode?.name || title?.title || 'Loading…'}</h1><p>{title?.title}{title?.trailerName && ` · ${title.trailerName}`}</p></div><div className="player-notice"><Video size={16} /><span>Playback provided by EmbedMaster.</span></div></div>
+    {title && <TitleReactions mediaType={mediaType} titleId={id} />}
   </div>;
 }
 
@@ -493,6 +597,7 @@ function RouteContent() {
     <Route path="/streaming/:providerId" component={StreamingPage} />
     <Route path="/streaming" component={StreamingPage} />
     <Route path="/categories" component={CategoriesPage} />
+    <Route path="/collections/:slug" component={CuratedCollectionPage} />
     <Route path="/sharing" component={SharingPage} />
     <Route path="/me" component={MePage} />
     <Route path="/search/:query" component={SearchPage} />

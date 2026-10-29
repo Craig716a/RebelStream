@@ -1,4 +1,5 @@
 import { Router, type IRouter, type Request, type Response } from "express";
+import type { Logger } from "pino";
 import {
   GetCatalogQueryParams,
   GetCatalogResponse,
@@ -23,6 +24,7 @@ import { getTmdb, TmdbError } from "../lib/tmdb";
 
 const router: IRouter = Router();
 type JsonRecord = Record<string, unknown>;
+type RequestWithLogger = Request & { log: Logger };
 
 function record(value: unknown): JsonRecord {
   return value !== null && typeof value === "object"
@@ -129,6 +131,10 @@ function mapTitle(value: unknown, type: MediaType): JsonRecord {
       return score(b) - score(a);
     })[0];
   const credits = record(title.credits);
+  const director = array(credits.crew).map(record).find((person) => person.job === "Director");
+  const creatorNames = array(title.created_by)
+    .map((person) => string(record(person).name))
+    .filter(Boolean);
   const lastEpisode = record(title.last_episode_to_air);
   const runtimeValue = title.runtime ?? array(title.episode_run_time)[0];
 
@@ -140,6 +146,8 @@ function mapTitle(value: unknown, type: MediaType): JsonRecord {
     posterPath: nullableString(title.poster_path),
     backdropPath: nullableString(title.backdrop_path),
     voteAverage: number(title.vote_average),
+    voteCount: Math.max(0, Math.trunc(number(title.vote_count))),
+    originalLanguage: string(title.original_language, "en"),
     releaseDate: nullableString(title.release_date ?? title.first_air_date),
     trailerKey: nullableString(trailer?.key),
     trailerName: nullableString(trailer?.name),
@@ -152,6 +160,8 @@ function mapTitle(value: unknown, type: MediaType): JsonRecord {
     status: nullableString(title.status),
     seasons: array(title.seasons).map(mapSeasonSummary),
     cast: array(credits.cast).slice(0, 12).map(mapCast),
+    director: nullableString(director?.name),
+    creatorNames,
   };
 }
 
@@ -219,7 +229,7 @@ function mapProviderRegion(iso: string, value: unknown): JsonRecord {
 
 function sendTmdbError(req: Request, res: Response, error: unknown): void {
   const status = error instanceof TmdbError ? error.status : 502;
-  req.log.warn({ status }, "TMDb request failed");
+  (req as RequestWithLogger).log.warn({ status }, "TMDb request failed");
 
   if (status === 404) {
     res.status(404).json({ error: "Title or season not found." });

@@ -427,6 +427,8 @@ components:
         posterPath: { type: ["string", "null"] }
         backdropPath: { type: ["string", "null"] }
         voteAverage: { type: number }
+        voteCount: { type: integer }
+        originalLanguage: { type: string }
         releaseDate: { type: ["string", "null"] }
         trailerKey: { type: ["string", "null"] }
         trailerName: { type: ["string", "null"] }
@@ -448,7 +450,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CastMember"
-      required: [id, mediaType, title, overview, posterPath, backdropPath, voteAverage, releaseDate, trailerKey, trailerName, genres, runtime, numberOfSeasons, numberOfEpisodes, lastEpisodeNumber, lastEpisodeName, status, seasons, cast]
+        director: { type: ["string", "null"] }
+        creatorNames:
+          type: array
+          items: { type: string }
+      required: [id, mediaType, title, overview, posterPath, backdropPath, voteAverage, voteCount, originalLanguage, releaseDate, trailerKey, trailerName, genres, runtime, numberOfSeasons, numberOfEpisodes, lastEpisodeNumber, lastEpisodeName, status, seasons, cast, director, creatorNames]
     Episode:
       type: object
       properties:
